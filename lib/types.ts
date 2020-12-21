@@ -1,3 +1,5 @@
+import { Moment } from 'moment'
+
 export interface RequestInit {
   headers?: any
   method?: string
@@ -98,8 +100,8 @@ export interface NewsItem {
   header?: string;
   intro?: string;
   body?: string;
-  published?: string;
-  modified?: string;
+  published: Moment;
+  modified?: Moment;
   imageUrl?: string;
 }
 

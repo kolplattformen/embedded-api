@@ -5,7 +5,10 @@ import {
 import {
   CalendarItem, Child, Classmate, Fetch, RequestInit,
 } from './types'
-import { calendar, classmates, list } from './children'
+import {
+  calendar, classmates, list,
+} from './children'
+import { news, News } from './news'
 
 interface AsyncishFunction { (): void | Promise<void> }
 
@@ -57,6 +60,11 @@ export class Api extends EventEmitter {
 
   async getClassmates(childId: string): Promise<Classmate[]> {
     const data = await classmates(this.fetch, this.session)(childId)
+    return data
+  }
+
+  async getNews(childId: string): Promise<News> {
+    const data = await news(this.fetch, this.session)(childId)
     return data
   }
 

@@ -32,8 +32,8 @@ async function run () {
       console.log(calendar)
       const classmates = await api.getClassmates(children[0].id)
       console.log(classmates)
-      const schedule = await api.getSchedule(children[0].id)
-      console.log(schedule)
+      const news = await api.getNews(children[0].id)
+      console.log(news)
 
       await api.logout()
     })

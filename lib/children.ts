@@ -2,7 +2,9 @@ import routes from './routes'
 import {
   CalendarItem, Child, Classmate, Fetch, RequestInit,
 } from './types'
-import { etjanst, child, calendarItem } from './parse'
+import {
+  etjanst, child, calendarItem,
+} from './parse'
 
 export const list = (fetch: Fetch, init?: RequestInit) => async (): Promise<Child[]> => {
   const url = routes.children
