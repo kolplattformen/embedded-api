@@ -55,7 +55,7 @@ async function run() {
       console.log(news)
 
       // console.log('image')
-      // const blob = await api.getImage(news.items[0].imageUrl)
+      // const blob = await api.getImage(news[0].imageUrl)
       // console.log(blob)
 
       // const arrayBuffer = await blob.arrayBuffer()
