@@ -30,6 +30,10 @@ export class Api extends EventEmitter {
     this.clearCookies = clearCookies
   }
 
+  getSessionCookie() {
+    return this.session?.headers?.Cookie
+  }
+
   setSessionCookie(cookie: string) {
     this.session = {
       headers: {

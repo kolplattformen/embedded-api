@@ -28,12 +28,14 @@ async function run() {
     api.on('login', async () => {
       console.log('Logged in')
 
+      console.log(api.getSessionCookie())
+
       // console.log('user')
       // const user = await api.getUser()
       // console.log(user)
 
-      console.log('children')
-      const children = await api.getChildren()
+      // console.log('children')
+      // const children = await api.getChildren()
       // console.log(children)
 
       // console.log('calendar')
@@ -48,13 +50,13 @@ async function run() {
       // const schedule = await api.getSchedule(children[0], moment().subtract(1, 'week'), moment())
       // console.log(schedule)
 
-      console.log('news')
-      const news = await api.getNews(children[0])
-      console.log(news)
+      // console.log('news')
+      // const news = await api.getNews(children[0])
+      // console.log(news)
 
-      console.log('image')
-      const blob = await api.getImage(news.items[0].imageUrl)
-      console.log(blob)
+      // console.log('image')
+      // const blob = await api.getImage(news.items[0].imageUrl)
+      // console.log(blob)
 
       // const arrayBuffer = await blob.arrayBuffer()
       // console.log(`data:${blob.type};base64,${Buffer.from(arrayBuffer).toString('base64')}`)
