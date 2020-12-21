@@ -2,7 +2,7 @@ import { login, checkStatus, getSessionCookie } from './login'
 import { Fetch, Headers, Response } from './types'
 
 describe('login', () => {
-  let fetch: jest.Mocked<Fetch >
+  let fetch: jest.Mocked<Fetch>
   let response: jest.Mocked<Response>
   let headers: jest.Mocked<Headers>
   beforeEach(() => {
@@ -33,7 +33,6 @@ describe('login', () => {
       token: '9462cf77-bde9-4029-bb41-e599f3094613',
       order: '5fe57e4c-9ad2-4b52-b794-48adef2f6663',
     }
-
     it('exposes token', () => {
       response.text.mockResolvedValue('PENDING')
 
@@ -41,7 +40,6 @@ describe('login', () => {
       expect(check.token).toEqual(ticket.token)
       check.cancel()
     })
-
     it('emits PENDING', (done) => {
       response.text.mockResolvedValue('PENDING')
 
