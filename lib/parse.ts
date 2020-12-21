@@ -1,3 +1,4 @@
+import * as moment from 'moment'
 import { CalendarItem, Child } from './types'
 
 const camel = require('camelcase-keys')
@@ -24,5 +25,11 @@ export const child = ({
 export const calendarItem = ({
   id, title, description, location, startDate, endDate, allDay,
 }: any): CalendarItem => ({
-  id, title, description, location, startDate, endDate, allDay,
+  id,
+  title,
+  description,
+  location,
+  allDay,
+  startDate: startDate ? moment(new Date(startDate)) : undefined,
+  endDate: endDate ? moment(new Date(endDate)) : undefined,
 })

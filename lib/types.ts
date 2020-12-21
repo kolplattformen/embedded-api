@@ -1,3 +1,5 @@
+import { Moment } from 'moment'
+
 export interface RequestInit {
   headers?: any
   method?: string
@@ -28,12 +30,12 @@ export interface AuthTicket {
  * @interface CalendarItem
  */
 export interface CalendarItem {
-  id?: number;
-  title?: string;
+  id: number;
+  title: string;
   description?: string;
   location?: string;
-  startDate?: string;
-  endDate?: string;
+  startDate?: Moment;
+  endDate?: Moment;
   allDay?: boolean;
 }
 
@@ -42,14 +44,14 @@ export interface CalendarItem {
  * @interface Child
  */
 export interface Child {
-  id?: string;
+  id: string;
   /**
    * <p>Special ID used to access certain subsystems</p>
    * @type {string}
    * @memberof Child
    */
-  sdsId?: string;
-  name?: string;
+  sdsId: string;
+  name: string;
   /**
    * <p>F - förskola, GR - grundskola?</p>
    * @type {string}

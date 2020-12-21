@@ -26,14 +26,22 @@ async function run () {
 
     api.on('login', async () => {
       console.log('Logged in')
+      
+      console.log('children')
       const children = await api.getChildren()
-      console.log(children)
-      const calendar = await api.getCalendar(children[0].id)
-      console.log(calendar)
-      const classmates = await api.getClassmates(children[0].id)
-      console.log(classmates)
-      const schedule = await api.getSchedule(children[0].id)
-      console.log(schedule)
+      // console.log(children)
+
+      console.log('calendar')
+      const calendar = await api.getCalendar(children[0])
+      // console.log(calendar)
+
+      console.log('classmates')
+      const classmates = await api.getClassmates(children[0])
+      // console.log(classmates)
+
+      console.log('schedule')
+      const schedule = await api.getSchedule(children[0])
+      // console.log(schedule)
 
       await api.logout()
     })
