@@ -34,8 +34,8 @@ async function run() {
       // const user = await api.getUser()
       // console.log(user)
 
-      // console.log('children')
-      // const children = await api.getChildren()
+      console.log('children')
+      const children = await api.getChildren()
       // console.log(children)
 
       // console.log('calendar')
@@ -50,9 +50,9 @@ async function run() {
       // const schedule = await api.getSchedule(children[0], moment().subtract(1, 'week'), moment())
       // console.log(schedule)
 
-      // console.log('news')
-      // const news = await api.getNews(children[0])
-      // console.log(news)
+      console.log('news')
+      const news = await api.getNews(children[0])
+      console.log(news)
 
       // console.log('image')
       // const blob = await api.getImage(news.items[0].imageUrl)
