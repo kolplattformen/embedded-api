@@ -60,6 +60,11 @@ export class Api extends EventEmitter {
     return data
   }
 
+  async getSchedule(childId: string): Promise<any> {
+    const data = await classmates(this.fetch, this.session)(childId)
+    return data
+  }
+
   async logout() {
     this.session = undefined
     await this.clearCookies()
