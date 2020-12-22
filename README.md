@@ -109,8 +109,8 @@ api.setSessionCookie(sessionCookie); // will trigger `on('login')` event and set
 
 ## Try it out
 
-1. Clone and enter repo: `git clone git@github.com:kolplattformen/embedded-api.git && cd embedded-api`
-2. Install dependencies: `yarn`
+1. Clone and enter repo: `git clone https://github.com/kolplattformen/embedded-api.git && cd embedded-api`
+2. Install dependencies: `yarn` (please note that you need Yarn2)
 3. Build package: `yarn build`
 4. Run example: `node run [your personal number]`
 5. Sign in with mobile BankID
