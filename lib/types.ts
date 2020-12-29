@@ -12,6 +12,9 @@ export interface Headers {
 
 export interface Response {
   headers: Headers
+  ok: boolean
+  status: number
+  statusText: string
   text: () => Promise<string>
   json: () => Promise<any>
   blob: () => Promise<Blob>

@@ -12,11 +12,14 @@ import {
 import { news } from './news'
 import { user } from './user'
 import { image } from './image'
+import fetcher, { FetcherOptions } from './fetcher'
 
 interface AsyncishFunction { (): void | Promise<void> }
 
 export class Api extends EventEmitter {
-  private fetch: Fetch
+  private fetchJson: Fetcher<any>
+  private fetchText: Fetcher<string>
+  private fetchRaw: Fetcher<Blob>
 
   private session?: RequestInit
 
@@ -24,9 +27,12 @@ export class Api extends EventEmitter {
 
   public isLoggedIn: boolean = false
 
-  constructor(fetch: Fetch, clearCookies: AsyncishFunction) {
+  constructor(fetch: Fetch, clearCookies: AsyncishFunction, options?: FetcherOptions) {
     super()
-    this.fetch = fetch
+    const { fetchJson, fetchText, fetchRaw } = fetcher(fetch, options)
+    this.fetchJson = fetchJson
+    this.fetchText = fetchText
+    this.fetchRaw = fetchRaw
     this.clearCookies = clearCookies
   }
 
