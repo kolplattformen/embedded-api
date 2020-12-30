@@ -1,4 +1,4 @@
-import fetcher, { CallInfo, Fetcher, Recorder } from './fetcher'
+import wrap, { CallInfo, Fetcher, Recorder } from './fetcher'
 import { Fetch, Headers, Response } from './types'
 const Blob = require('node-blob')
 Blob.prototype.arrayBuffer = async function () {
@@ -9,6 +9,7 @@ describe('fetcher', () => {
   let fetch: jest.Mocked<Fetch>
   let response: jest.Mocked<Response>
   let headers: jest.Mocked<Headers>
+  let fetcher: Fetcher
   beforeEach(() => {
     headers = { get: jest.fn() }
     response = {
@@ -21,141 +22,89 @@ describe('fetcher', () => {
       headers,
     }
     fetch = jest.fn().mockResolvedValue(response)
+    fetcher = wrap(fetch)
   })
-  describe('#fetchJson', () => {
-    let fetchJson: Fetcher<any>
-    beforeEach(() => {
-      fetchJson = fetcher(fetch).fetchJson
-    })
-    it('calls fetch', async () => {
-      await fetchJson('foo', '/')
-      expect(fetch).toHaveBeenCalledWith('/', undefined)
-    })
-    it('calls response.json()', async () => {
-      await fetchJson('foo', '/')
-      expect(response.json).toHaveBeenCalled()
-    })
-    it('returns the result', async () => {
-      const data = { foo: 'bar' }
-      response.json.mockResolvedValue(data)
-
-      const result = await fetchJson('foo', '/')
-
-      expect(result).toEqual(data)
-    })
+  it('calls fetch', async () => {
+    await fetcher('foo', '/')
+    expect(fetch).toHaveBeenCalledWith('/', undefined)
   })
-  describe('#fetchText', () => {
-    let fetchText: Fetcher<string>
-    beforeEach(() => {
-      fetchText = fetcher(fetch).fetchText
-    })
-    it('calls fetch', async () => {
-      await fetchText('foo', '/')
-      expect(fetch).toHaveBeenCalledWith('/', undefined)
-    })
-    it('calls response.text()', async () => {
-      await fetchText('foo', '/')
-      expect(response.text).toHaveBeenCalled()
-    })
-    it('returns the result', async () => {
-      const data = 'Hello World!'
-      response.text.mockResolvedValue(data)
+  it('json returns the result', async () => {
+    const data = { foo: 'bar' }
+    response.json.mockResolvedValue(data)
 
-      const result = await fetchText('foo', '/')
+    const res = await fetcher('foo', '/')
+    const result = await res.json()
 
-      expect(result).toEqual(data)
-    })
+    expect(result).toEqual(data)
   })
-  describe('#fetchRaw', () => {
-    let fetchRaw: Fetcher<Blob>
-    beforeEach(() => {
-      fetchRaw = fetcher(fetch).fetchRaw
-    })
-    it('calls fetch', async () => {
-      await fetchRaw('foo', '/')
-      expect(fetch).toHaveBeenCalledWith('/', undefined)
-    })
-    it('calls response.blob()', async () => {
-      await fetchRaw('foo', '/')
-      expect(response.blob).toHaveBeenCalled()
-    })
-    it('returns the result', async () => {
-      const data = new Blob()
-      response.blob.mockResolvedValue(data)
+  it('text returns the result', async () => {
+    const data = 'Hello World!'
+    response.text.mockResolvedValue(data)
 
-      const result = await fetchRaw('foo', '/')
+    const res = await fetcher('foo', '/')
+    const result = await res.text()
 
-      expect(result).toEqual(data)
-    })
+    expect(result).toEqual(data)
+  })
+  it('blob returns the result', async () => {
+    const data = new Blob()
+    response.blob.mockResolvedValue(data)
+
+    const res = await fetcher('foo', '/')
+    const result = await res.blob()
+
+    expect(result).toEqual(data)
   })
   describe('record', () => {
     let recorder: Recorder
     beforeEach(() => {
       recorder = jest.fn().mockResolvedValue(undefined)
+      fetcher = wrap(fetch, { record: recorder })
     })
-    describe('#fetchJson', () => {
-      let fetchJson: Fetcher<any>
-      beforeEach(() => {
-        fetchJson = fetcher(fetch, { record: recorder }).fetchJson
-      })
-      it('records with the correct filename', async () => {
-        response.json.mockResolvedValue({})
+    it('records with the correct parameters for json', async () => {
+      response.json.mockResolvedValue({})
 
-        await fetchJson('foo', '/')
+      await (await fetcher('foo', '/')).json()
 
-        const expectedInfo: CallInfo = {
-          name: 'foo',
-          type: 'json',
-          url: '/',
-          status: 200,
-          statusText: 'ok',
-        }
-        const expectedData = {}
-        expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
-      })
+      const expectedInfo: CallInfo = {
+        name: 'foo',
+        type: 'json',
+        url: '/',
+        status: 200,
+        statusText: 'ok',
+      }
+      const expectedData = {}
+      expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
     })
-    describe('#fetchText', () => {
-      let fetchText: Fetcher<string>
-      beforeEach(() => {
-        fetchText = fetcher(fetch, { record: recorder }).fetchText
-      })
-      it('records with the correct filename', async () => {
-        response.text.mockResolvedValue('Hello')
+    it('records with the correct parameters for text', async () => {
+      response.text.mockResolvedValue('Hello')
 
-        await fetchText('foo', '/')
+      await (await fetcher('foo', '/')).text()
 
-        const expectedInfo: CallInfo = {
-          name: 'foo',
-          type: 'txt',
-          url: '/',
-          status: 200,
-          statusText: 'ok',
-        }
-        const expectedData = 'Hello'
-        expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
-      })
+      const expectedInfo: CallInfo = {
+        name: 'foo',
+        type: 'text',
+        url: '/',
+        status: 200,
+        statusText: 'ok',
+      }
+      const expectedData = 'Hello'
+      expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
     })
-    describe('#fetchRaw', () => {
-      let fetchRaw: Fetcher<Blob>
-      beforeEach(() => {
-        fetchRaw = fetcher(fetch, { record: recorder }).fetchRaw
-      })
-      it('records with the correct filename', async () => {
-        const data = new Blob('Hello')
-        response.blob.mockResolvedValue(data)
+    it('records with the correct parameters for blob', async () => {
+      const data = new Blob('Hello')
+      response.blob.mockResolvedValue(data)
 
-        await fetchRaw('foo', '/')
+      await (await fetcher('foo', '/')).blob()
 
-        const expectedInfo: CallInfo = {
-          name: 'foo',
-          type: 'binary',
-          url: '/',
-          status: 200,
-          statusText: 'ok',
-        }
-        const expectedData = data.buffer.buffer
-        expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
-      })
+      const expectedInfo: CallInfo = {
+        name: 'foo',
+        type: 'blob',
+        url: '/',
+        status: 200,
+        statusText: 'ok',
+      }
+      expect(recorder).toHaveBeenCalledWith(expectedInfo, data)
     })
   })
 })

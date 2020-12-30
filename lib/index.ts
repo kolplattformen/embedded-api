@@ -1,25 +1,29 @@
 import { Moment } from 'moment'
 import { EventEmitter } from 'events'
 import {
-  checkStatus, getSessionCookie, login, LoginStatus,
-} from './login'
+  checkStatus, LoginStatusChecker
+} from './loginStatus'
 import {
-  CalendarItem, Child, Classmate, Fetch, MenuItem, NewsItem, RequestInit,
+  AuthTicket,
+  CalendarItem,
+  Child,
+  Classmate,
+  Fetch,
+  MenuItem,
+  NewsItem,
+  Notification,
+  RequestInit,
+  ScheduleItem,
+  User,
 } from './types'
-import {
-  calendar, classmates, list, menu, notifications, schedule,
-} from './children'
-import { news } from './news'
-import { user } from './user'
-import { image } from './image'
-import fetcher, { FetcherOptions } from './fetcher'
+import * as routes from './routes'
+import * as parse from './parse'
+import wrap, { Fetcher, FetcherOptions } from './fetcher'
 
 interface AsyncishFunction { (): void | Promise<void> }
 
 export class Api extends EventEmitter {
-  private fetchJson: Fetcher<any>
-  private fetchText: Fetcher<string>
-  private fetchRaw: Fetcher<Blob>
+  private fetch: Fetcher
 
   private session?: RequestInit
 
@@ -29,10 +33,7 @@ export class Api extends EventEmitter {
 
   constructor(fetch: Fetch, clearCookies: AsyncishFunction, options?: FetcherOptions) {
     super()
-    const { fetchJson, fetchText, fetchRaw } = fetcher(fetch, options)
-    this.fetchJson = fetchJson
-    this.fetchText = fetchText
-    this.fetchRaw = fetchRaw
+    this.fetch = wrap(fetch, options)
     this.clearCookies = clearCookies
   }
 
@@ -51,58 +52,81 @@ export class Api extends EventEmitter {
     this.emit('login')
   }
 
-  async login(personalNumber: string): Promise<LoginStatus> {
-    const ticket = await login(this.fetch)(personalNumber)
-    const loginStatus = checkStatus(this.fetch)(ticket)
-    loginStatus.on('OK', async () => {
-      const sessionCookie = await getSessionCookie(this.fetch)()
-      this.setSessionCookie(sessionCookie)
+  async login(personalNumber: string): Promise<LoginStatusChecker> {
+    const ticketUrl = routes.login(personalNumber)
+    const ticketResponse = await this.fetch('auth-ticket', ticketUrl)
+    const ticket: AuthTicket = await ticketResponse.json()
+
+    const status = checkStatus(this.fetch, ticket)
+    status.on('OK', async () => {
+      const cookieUrl = routes.loginCookie
+      const cookieResponse = await this.fetch('login-cookie', cookieUrl)
+      const cookie = cookieResponse.headers.get('set-cookie') || ''
+      this.setSessionCookie(cookie)
     })
-    return loginStatus
+
+    return status
   }
 
-  async getUser(): Promise<any> {
-    const data = await user(this.fetch, this.session)()
-    return data
+  async getUser(): Promise<User> {
+    const url = routes.user
+    const response = await this.fetch('user', url, this.session)
+    const data = await response.json()
+    return parse.user(data)
   }
 
   async getChildren(): Promise<Child[]> {
-    const data = await list(this.fetch, this.session)()
-    return data
+    const url = routes.children
+    const response = await this.fetch('children', url, this.session)
+    const data = await response.json()
+    return parse.children(data)
   }
 
   async getCalendar(child: Child): Promise<CalendarItem[]> {
-    const data = await calendar(this.fetch, this.session)(child.id)
-    return data
+    const url = routes.calendar(child.id)
+    const response = await this.fetch('calendar', url, this.session)
+    const data = await response.json()
+    return parse.calendar(data)
   }
 
   async getClassmates(child: Child): Promise<Classmate[]> {
-    const data = await classmates(this.fetch, this.session)(child.sdsId)
-    return data
+    const url = routes.classmates(child.sdsId)
+    const response = await this.fetch('classmates', url, this.session)
+    const data = await response.json()
+    return parse.classmates(data)
   }
 
-  async getSchedule(child: Child, from: Moment, to: Moment): Promise<any> {
-    const data = await schedule(this.fetch, this.session)(child.sdsId, from, to)
-    return data
+  async getSchedule(child: Child, from: Moment, to: Moment): Promise<ScheduleItem[]> {
+    const url = routes.schedule(child.sdsId, from.format('YYYY-MM-DD'), to.format('YYYY-MM-DD'))
+    const response = await this.fetch('schedule', url, this.session)
+    const data = await response.json()
+    return parse.schedule(data)
   }
 
   async getNews(child: Child): Promise<NewsItem[]> {
-    const data = await news(this.fetch, this.session)(child.id)
-    return data
+    const url = routes.news(child.id)
+    const response = await this.fetch('news', url, this.session)
+    const data = await response.json()
+    return parse.news(data)
   }
 
   async getMenu(child: Child): Promise<MenuItem[]> {
-    const data = await menu(this.fetch, this.session)(child.id)
-    return data
+    const url = routes.menu(child.id)
+    const response = await this.fetch('menu', url, this.session)
+    const data = await response.json()
+    return parse.menu(data)
   }
 
   async getNotifications(child: Child): Promise<Notification[]> {
-    const data = notifications(this.fetch, this.session)(child.sdsId)
-    return data
+    const url = routes.notifications(child.sdsId)
+    const response = await this.fetch('notifications', url, this.session)
+    const data = await response.json()
+    return parse.notifications(data)
   }
 
   async getImage(imageUrl: string): Promise<Blob> {
-    const data = await image(this.fetch, this.session)(imageUrl)
+    const response = await this.fetch('image', imageUrl, this.session)
+    const data = await response.blob()
     return data
   }
 

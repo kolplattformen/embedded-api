@@ -13,8 +13,8 @@ export interface FetcherOptions {
   record?: (info: CallInfo, data: string | Buffer | ArrayBuffer) => Promise<void>
 }
 
-export interface Fetcher<T> {
-  (name: string, url: string, init?: RequestInit): Promise<T>
+export interface Fetcher {
+  (name: string, url: string, init?: RequestInit): Promise<Response>
 }
 
 export interface Recorder {
@@ -28,7 +28,7 @@ const record = async (
   type: string,
   options: FetcherOptions,
   response: Response,
-  data: string | Buffer | ArrayBuffer,
+  data: string | Buffer | ArrayBuffer | Blob,
 ): Promise<void> => {
   if (!options.record) {
     return
@@ -44,28 +44,25 @@ const record = async (
   await options.record(info, data)
 }
 
-export default function fetcher(fetch: Fetch, options: FetcherOptions = {}) {
-  return {
-    fetchJson: async (name: string, url: string, init?: RequestInit): Promise<any> => {
-      const response = await fetch(url, init)
-      const json = await response.json()
-      await record(name, url, init, 'json', options, response, json)
-      return json
-    },
-    fetchText: async (name: string, url: string, init?: RequestInit): Promise<string> => {
-      const response = await fetch(url, init)
-      const text = await response.text()
-      await record(name, url, init, 'txt', options, response, text)
-      return text
-    },
-    fetchRaw: async (name: string, url: string, init?: RequestInit): Promise<Blob> => {
-      const response = await fetch(url, init)
-      const blob = await response.blob()
-      if (options.record) {
-        const binary = await blob.arrayBuffer()
-        await record(name, url, init, 'binary', options, response, binary)
+export default function wrap(fetch: Fetch, options: FetcherOptions = {}): Fetcher {
+  return async (name: string, url: string, init?: RequestInit): Promise<Response> => {
+    const response = await fetch(url, init)
+
+    const wrapMethod = (res: Response, methodName: string): void => {
+      // @ts-ignore
+      const original = res[methodName]
+      // @ts-ignore
+      res[methodName] = async (...args) => {
+        const result = await original(...args)
+        await record(name, url, init, methodName, options, response, result)
+        return result
       }
-      return blob
-    },
+    }
+    wrapMethod(response, 'json')
+    wrapMethod(response, 'text')
+    wrapMethod(response, 'blob')
+    wrapMethod(response, 'arrayBuffer')
+
+    return response
   }
 }
