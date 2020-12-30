@@ -83,7 +83,7 @@ export const newsItem = ({
   published: moment(new Date(pubDateSe)),
   modified: moment(new Date(modDateSe)),
 })
-export const news = (data: any): NewsItem[] => etjanst(data).map(newsItem)
+export const news = (data: any): NewsItem[] => etjanst(data).newsItems.map(newsItem)
 
 export const scheduleItem = ({
   title, description, location, longEventDateTime, longEndDateTime, isSameDay, allDayEvent,

@@ -26,7 +26,7 @@ describe('fetcher', () => {
   })
   it('calls fetch', async () => {
     await fetcher('foo', '/')
-    expect(fetch).toHaveBeenCalledWith('/', undefined)
+    expect(fetch).toHaveBeenCalledWith('/', expect.any(Object))
   })
   it('json returns the result', async () => {
     const data = { foo: 'bar' }
@@ -57,22 +57,25 @@ describe('fetcher', () => {
   })
   describe('record', () => {
     let recorder: Recorder
+    let expectedInfo: CallInfo
     beforeEach(() => {
       recorder = jest.fn().mockResolvedValue(undefined)
       fetcher = wrap(fetch, { record: recorder })
+      expectedInfo = {
+        name: 'foo',
+        type: '',
+        url: '/',
+        headers: expect.any(Object),
+        status: 200,
+        statusText: 'ok',
+      }
     })
     it('records with the correct parameters for json', async () => {
       response.json.mockResolvedValue({})
 
       await (await fetcher('foo', '/')).json()
 
-      const expectedInfo: CallInfo = {
-        name: 'foo',
-        type: 'json',
-        url: '/',
-        status: 200,
-        statusText: 'ok',
-      }
+      expectedInfo.type = 'json'
       const expectedData = {}
       expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
     })
@@ -81,13 +84,8 @@ describe('fetcher', () => {
 
       await (await fetcher('foo', '/')).text()
 
-      const expectedInfo: CallInfo = {
-        name: 'foo',
-        type: 'text',
-        url: '/',
-        status: 200,
-        statusText: 'ok',
-      }
+      expectedInfo.type = 'text'
+
       const expectedData = 'Hello'
       expect(recorder).toHaveBeenCalledWith(expectedInfo, expectedData)
     })
@@ -97,13 +95,8 @@ describe('fetcher', () => {
 
       await (await fetcher('foo', '/')).blob()
 
-      const expectedInfo: CallInfo = {
-        name: 'foo',
-        type: 'blob',
-        url: '/',
-        status: 200,
-        statusText: 'ok',
-      }
+      expectedInfo.type = 'blob'
+
       expect(recorder).toHaveBeenCalledWith(expectedInfo, data)
     })
   })

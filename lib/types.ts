@@ -1,5 +1,7 @@
 import { Moment } from 'moment'
 
+export interface AsyncishFunction { (): void | Promise<void> }
+
 export interface RequestInit {
   headers?: any
   method?: string

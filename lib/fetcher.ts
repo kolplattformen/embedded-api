@@ -10,7 +10,7 @@ export interface CallInfo extends RequestInit {
 }
 
 export interface FetcherOptions {
-  record?: (info: CallInfo, data: string | Buffer | ArrayBuffer) => Promise<void>
+  record?: (info: CallInfo, data: string | Blob | Buffer | ArrayBuffer) => Promise<void>
 }
 
 export interface Fetcher {
@@ -18,7 +18,7 @@ export interface Fetcher {
 }
 
 export interface Recorder {
-  (info: CallInfo, data: string | Buffer | ArrayBuffer): Promise<void>
+  (info: CallInfo, data: string | Blob | Buffer | ArrayBuffer): Promise<void>
 }
 
 const record = async (
@@ -45,12 +45,19 @@ const record = async (
 }
 
 export default function wrap(fetch: Fetch, options: FetcherOptions = {}): Fetcher {
-  return async (name: string, url: string, init?: RequestInit): Promise<Response> => {
-    const response = await fetch(url, init)
+  return async (name: string, url: string, init: RequestInit = { headers: {} }): Promise<Response> => {
+    const response = await fetch(url, {
+      ...init,
+      headers: {
+        ...init.headers,
+        // eslint-disable-next-line max-len
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36',
+      },
+    })
 
     const wrapMethod = (res: Response, methodName: string): void => {
       // @ts-ignore
-      const original = res[methodName]
+      const original = res[methodName].bind(res)
       // @ts-ignore
       res[methodName] = async (...args) => {
         const result = await original(...args)
@@ -61,7 +68,6 @@ export default function wrap(fetch: Fetch, options: FetcherOptions = {}): Fetche
     wrapMethod(response, 'json')
     wrapMethod(response, 'text')
     wrapMethod(response, 'blob')
-    wrapMethod(response, 'arrayBuffer')
 
     return response
   }
