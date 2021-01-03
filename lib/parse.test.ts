@@ -1,6 +1,4 @@
-import * as moment from 'moment'
 import * as parse from "./parse"
-import { NewsItem } from "./types"
 
 describe('parse', () => {
   let response: parse.EtjanstResponse
