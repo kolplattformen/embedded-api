@@ -1,4 +1,4 @@
-import * as moment from 'moment'
+import { DateTime } from 'luxon'
 import * as h2m from 'h2m'
 import { htmlDecode } from 'js-htmlencode'
 import {
@@ -67,8 +67,8 @@ export const calendarItem = ({
   description,
   location,
   allDay: allDayEvent,
-  startDate: longEventDateTime ? moment(new Date(longEventDateTime)) : undefined,
-  endDate: longEndDateTime ? moment(new Date(longEndDateTime)) : undefined,
+  startDate: longEventDateTime ? DateTime.fromSQL(longEventDateTime).toISO() : undefined,
+  endDate: longEndDateTime ? DateTime.fromSQL(longEndDateTime).toISO() : undefined,
 })
 export const calendar = (data: any): CalendarItem[] => etjanst(data).map(calendarItem)
 
@@ -80,8 +80,8 @@ export const newsItem = ({
   intro: preamble,
   imageUrl: bannerImageUrl,
   body: htmlDecode(h2m(body)),
-  published: moment(new Date(pubDateSe)),
-  modified: moment(new Date(modDateSe)),
+  published: DateTime.fromFormat(pubDateSe, 'dd LLLL yyyy HH:mm').toISO(),
+  modified: DateTime.fromFormat(modDateSe, 'dd LLLL yyyy HH:mm').toISO(),
 })
 export const news = (data: any): NewsItem[] => etjanst(data).newsItems.map(newsItem)
 
@@ -92,8 +92,8 @@ export const scheduleItem = ({
   description,
   location,
   allDayEvent,
-  startDate: moment(new Date(longEventDateTime)),
-  endDate: moment(new Date(longEndDateTime)),
+  startDate: DateTime.fromSQL(longEventDateTime).toISO(),
+  endDate: DateTime.fromSQL(longEndDateTime).toISO(),
   oneDayEvent: isSameDay,
 })
 export const schedule = (data: any): ScheduleItem[] => etjanst(data).map(scheduleItem)
@@ -131,7 +131,7 @@ export const notification = ({
   message: messagetext,
   sender: name,
   url: linkbackurl,
-  dateCreated: moment(new Date(dateCreated)),
+  dateCreated: DateTime.fromISO(dateCreated).toISO(),
   category,
   type,
 })
