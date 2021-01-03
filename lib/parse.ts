@@ -67,8 +67,8 @@ export const calendarItem = ({
   description,
   location,
   allDay: allDayEvent,
-  startDate: longEventDateTime ? DateTime.fromSQL(longEventDateTime).toISO() : undefined,
-  endDate: longEndDateTime ? DateTime.fromSQL(longEndDateTime).toISO() : undefined,
+  startDate: longEventDateTime ? DateTime.fromSQL(longEventDateTime).setZone('Europe/Stockholm').toISO() : undefined,
+  endDate: longEndDateTime ? DateTime.fromSQL(longEndDateTime).setZone('Europe/Stockholm').toISO() : undefined,
 })
 export const calendar = (data: any): CalendarItem[] => etjanst(data).map(calendarItem)
 
@@ -80,8 +80,8 @@ export const newsItem = ({
   intro: preamble,
   imageUrl: bannerImageUrl,
   body: htmlDecode(h2m(body)),
-  published: DateTime.fromFormat(pubDateSe, 'dd LLLL yyyy HH:mm').toISO(),
-  modified: DateTime.fromFormat(modDateSe, 'dd LLLL yyyy HH:mm').toISO(),
+  published: DateTime.fromFormat(pubDateSe, 'dd LLLL yyyy HH:mm', { locale: 'sv' }).setZone('Europe/Stockholm').toISO(),
+  modified: DateTime.fromFormat(modDateSe, 'dd LLLL yyyy HH:mm', { locale: 'sv' }).setZone('Europe/Stockholm').toISO(),
 })
 export const news = (data: any): NewsItem[] => etjanst(data).newsItems.map(newsItem)
 
@@ -92,8 +92,8 @@ export const scheduleItem = ({
   description,
   location,
   allDayEvent,
-  startDate: DateTime.fromSQL(longEventDateTime).toISO(),
-  endDate: DateTime.fromSQL(longEndDateTime).toISO(),
+  startDate: DateTime.fromSQL(longEventDateTime).setZone('Europe/Stockholm').toISO(),
+  endDate: DateTime.fromSQL(longEndDateTime).setZone('Europe/Stockholm').toISO(),
   oneDayEvent: isSameDay,
 })
 export const schedule = (data: any): ScheduleItem[] => etjanst(data).map(scheduleItem)
@@ -131,7 +131,7 @@ export const notification = ({
   message: messagetext,
   sender: name,
   url: linkbackurl,
-  dateCreated: DateTime.fromISO(dateCreated).toISO(),
+  dateCreated: DateTime.fromISO(dateCreated).setZone('Europe/Stockholm').toISO(),
   category,
   type,
 })
