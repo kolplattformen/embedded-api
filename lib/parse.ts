@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime, DateTimeOptions } from 'luxon'
 import * as h2m from 'h2m'
 import { htmlDecode } from 'js-htmlencode'
 import {
@@ -6,6 +6,12 @@ import {
 } from './types'
 
 const camel = require('camelcase-keys')
+
+const dateTimeOptions: DateTimeOptions = {
+  locale: 'sv',
+  setZone: true,
+  zone: 'Europe/Stockholm',
+}
 
 export interface EtjanstResponse {
   Success: boolean
@@ -67,8 +73,8 @@ export const calendarItem = ({
   description,
   location,
   allDay: allDayEvent,
-  startDate: longEventDateTime ? DateTime.fromSQL(longEventDateTime).setZone('Europe/Stockholm').toISO() : undefined,
-  endDate: longEndDateTime ? DateTime.fromSQL(longEndDateTime).setZone('Europe/Stockholm').toISO() : undefined,
+  startDate: longEventDateTime ? DateTime.fromSQL(longEventDateTime, dateTimeOptions).toISO() : undefined,
+  endDate: longEndDateTime ? DateTime.fromSQL(longEndDateTime, dateTimeOptions).toISO() : undefined,
 })
 export const calendar = (data: any): CalendarItem[] => etjanst(data).map(calendarItem)
 
@@ -80,8 +86,8 @@ export const newsItem = ({
   intro: preamble,
   imageUrl: bannerImageUrl,
   body: htmlDecode(h2m(body)),
-  published: DateTime.fromFormat(pubDateSe, 'dd LLLL yyyy HH:mm', { locale: 'sv' }).setZone('Europe/Stockholm').toISO(),
-  modified: DateTime.fromFormat(modDateSe, 'dd LLLL yyyy HH:mm', { locale: 'sv' }).setZone('Europe/Stockholm').toISO(),
+  published: DateTime.fromFormat(pubDateSe, 'dd LLLL yyyy HH:mm', dateTimeOptions).toISO(),
+  modified: DateTime.fromFormat(modDateSe, 'dd LLLL yyyy HH:mm', dateTimeOptions).toISO(),
 })
 export const news = (data: any): NewsItem[] => etjanst(data).newsItems.map(newsItem)
 
@@ -92,8 +98,8 @@ export const scheduleItem = ({
   description,
   location,
   allDayEvent,
-  startDate: DateTime.fromSQL(longEventDateTime).setZone('Europe/Stockholm').toISO(),
-  endDate: DateTime.fromSQL(longEndDateTime).setZone('Europe/Stockholm').toISO(),
+  startDate: DateTime.fromSQL(longEventDateTime, dateTimeOptions).toISO(),
+  endDate: DateTime.fromSQL(longEndDateTime, dateTimeOptions).toISO(),
   oneDayEvent: isSameDay,
 })
 export const schedule = (data: any): ScheduleItem[] => etjanst(data).map(scheduleItem)
@@ -131,7 +137,7 @@ export const notification = ({
   message: messagetext,
   sender: name,
   url: linkbackurl,
-  dateCreated: DateTime.fromISO(dateCreated).setZone('Europe/Stockholm').toISO(),
+  dateCreated: DateTime.fromISO(dateCreated, dateTimeOptions).toISO(),
   category,
   type,
 })
