@@ -95,8 +95,12 @@ export class Api extends EventEmitter {
     return parse.classmates(data)
   }
 
-  async getSchedule(child: Child, from: DateTime, to: DateTime): Promise<ScheduleItem[]> {
-    const url = routes.schedule(child.sdsId, from.toISODate(), to.toISODate())
+  async getSchedule(child: Child, from: string, to: string): Promise<ScheduleItem[]> {
+    const url = routes.schedule(
+      child.sdsId,
+      DateTime.fromISO(from).toISODate(),
+      DateTime.fromISO(to).toISODate(),
+    )
     const response = await this.fetch('schedule', url, this.session)
     const data = await response.json()
     return parse.schedule(data)
