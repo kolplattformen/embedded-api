@@ -94,7 +94,7 @@ export interface Guardian {
  * @interface NewsItem
  */
 export interface NewsItem {
-  id?: string
+  id: string
   author?: string
   header?: string
   intro?: string

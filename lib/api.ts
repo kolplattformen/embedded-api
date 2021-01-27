@@ -154,7 +154,7 @@ export class Api extends EventEmitter {
   async getNewsDetails(child: Child, item: NewsItem): Promise<any> {
     const url = routes.newsDetails(child.id, item.id)
     const response = await this.fetch(`news_${item.id}`, url, this.session)
-    const data = await response.text()
+    const data = await response.json()
     return data
   }
 
