@@ -78,10 +78,6 @@ async function run() {
       const news = await api.getNews(children[0])
       console.log(news)
 
-      console.log('news details')
-      const details = await api.getNewsDetails(children[0], news[0])
-      console.log(details)
-
       // console.log('menu')
       // const menu = await api.getMenu(children[0])
       // console.log(menu)
