@@ -45,7 +45,12 @@ const record = async (
 }
 
 export default function wrap(fetch: Fetch, options: FetcherOptions = {}): Fetcher {
-  return async (name: string, url: string, init: RequestInit = { headers: {} }): Promise<Response> => {
+  return async (
+    name: string,
+    url: string,
+    init: RequestInit = { headers: {} },
+    _batchOn?: string,
+  ): Promise<Response> => {
     const response = await fetch(url, {
       ...init,
       headers: {
