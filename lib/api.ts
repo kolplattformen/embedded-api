@@ -42,6 +42,8 @@ export class Api extends EventEmitter {
 
   public isFake: boolean = false
 
+  public batchMode: boolean = false
+
   constructor(fetch: Fetch, cookieManager: CookieManager, options?: FetcherOptions) {
     super()
     this.fetch = wrap(fetch, options)
@@ -255,7 +257,9 @@ export class Api extends EventEmitter {
     }
 
     const data = await response.json()
-    return parse.children(data)
+    const parsed = parse.children(data)
+    this.batchMode = parsed.some((c) => (c.status || '').includes('FS'))
+    return parsed
   }
 
   public async getCalendar(child: Child): Promise<CalendarItem[]> {
@@ -330,6 +334,7 @@ export class Api extends EventEmitter {
   }
 
   public async logout() {
+    this.batchMode = false
     this.isFake = false
     this.personalNumber = undefined
     this.isLoggedIn = false
