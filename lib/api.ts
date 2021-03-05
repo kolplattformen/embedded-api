@@ -124,7 +124,7 @@ export class Api extends EventEmitter {
     if (this.isFake) return fakeResponse(fake.children())
 
     const hemResponse = await this.fetch('hemPage', routes.hemPage, this.session)
-    const doc = html.parse(decode(await hemResponse.text())) 
+    const doc = html.parse(decode(await hemResponse.text()))
     const xsrfToken = doc.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value') || ''
     if (this.session) {
       this.session.headers = {
@@ -152,16 +152,16 @@ export class Api extends EventEmitter {
     const authResponse = await this.fetch('auth', routes.auth, this.session)
     const auth = await authResponse.text()
 
+    await this.clearCookies()
     const createItemResponse = await this.fetch('createItem', cdn, {
       method: 'POST',
-
       headers: {
         Accept: 'text/plain',
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'text/plain',
-        'Cookie': this.getSessionCookie(),
         Host: cdnHost,
-        Origin: 'https://etjanst.stockholm.se'
+        Origin: 'https://etjanst.stockholm.se',
+        Connection: 'keep-alive',
       },
       body: auth,
     })
