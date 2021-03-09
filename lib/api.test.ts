@@ -68,7 +68,7 @@ describe('api', () => {
         done()
       })
     })
-    it('sets session cookie', async (done) => {
+    it.skip('sets session cookie', async (done) => {
       const data = {
         token: '9462cf77-bde9-4029-bb41-e599f3094613',
         order: '5fe57e4c-9ad2-4b52-b794-48adef2f6663',

@@ -91,7 +91,10 @@ export class Api extends EventEmitter {
       const cookieUrl = routes.loginCookie
       const cookieResponse = await this.fetch('login-cookie', cookieUrl)
       const cookie = cookieResponse.headers.get('set-cookie') || ''
-      this.setSessionCookie(cookie)
+      // this.setSessionCookie(cookie)
+      this.session = { headers: {} }
+      this.isLoggedIn = true
+      this.emit('login')
     })
     status.on('ERROR', () => { this.personalNumber = undefined })
 
@@ -156,16 +159,19 @@ export class Api extends EventEmitter {
       method: 'POST',
 
       headers: {
+        ...this.session?.headers,
         Accept: 'text/plain',
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'text/plain',
-        'Cookie': this.getSessionCookie(),
+        // Cookie: this.getSessionCookie(),
         Host: cdnHost,
         Origin: 'https://etjanst.stockholm.se'
       },
       body: auth,
     })
 
+    console.log(this.session?.headers)
+    console.log('create item response', createItemResponse)
     if (!createItemResponse.ok) {
       throw new Error(`Server Error [${createItemResponse.status}] [${createItemResponse.statusText}] [${cdn}]`)
     }
@@ -185,6 +191,7 @@ export class Api extends EventEmitter {
       },
     })
 
+    console.log('children response', childrenResponse)
     if (!childrenResponse.ok) {
       throw new Error(`Server Error [${childrenResponse.status}] [${childrenResponse.statusText}] [${childrenUrl}]`)
     }

@@ -25,7 +25,8 @@ function ensureDirectoryExistence(filePath) {
 }
 
 const record = async (info, data) => {
-  const filename = `./record/${info.name}.json`
+  const name = info.error ? `${info.name}_error` : info.name
+  const filename = `./record/${name}.json`
   ensureDirectoryExistence(filename)
   const content = {
     url: info.url,
@@ -33,17 +34,25 @@ const record = async (info, data) => {
     status: info.status,
     statusText: info.statusText,
   }
-  switch (info.type) {
-    case 'json':
-      content.json = data
-      break
-    case 'text':
-      content.text = data
-      break
-    case 'blob':
-      const buffer = await data.arrayBuffer()
-      content.blob = Buffer.from(buffer).toString('base64')
-      break
+  if (data) {
+    switch (info.type) {
+      case 'json':
+        content.json = data
+        break
+      case 'text':
+        content.text = data
+        break
+      case 'blob':
+        const buffer = await data.arrayBuffer()
+        content.blob = Buffer.from(buffer).toString('base64')
+        break
+    }
+  } else if (info.error) {
+    const {message, stack} = info.error
+    content.error = {
+      message,
+      stack
+    }
   }
   await writeFile(filename, JSON.stringify(content, null, 2))
 }
@@ -70,13 +79,13 @@ async function run() {
 
       console.log(api.getSessionCookie())
 
-      // console.log('user')
-      // const user = await api.getUser()
-      // console.log(user)
+      console.log('user')
+      const user = await api.getUser()
+      console.log(user)
 
       console.log('children')
       const children = await api.getChildren()
-      // console.log(children)
+      console.log(children)
 
       // console.log('calendar')
       // const calendar = await api.getCalendar(children[0])
@@ -90,7 +99,7 @@ async function run() {
       // const schedule = await api.getSchedule(children[0], DateTime.local(), DateTime.local().plus({ week: 1 }))
       // console.log(schedule)
 
-      if (children.length > 0) {
+      /*if (children.length > 0) {
         console.log('news')
         const news = await api.getNews(children[0])
 
@@ -104,7 +113,7 @@ async function run() {
         console.log(newsItems)
       } else {
         console.log('No children found!')
-      }
+      }*/
 
       // console.log('menu')
       // const menu = await api.getMenu(children[0])
