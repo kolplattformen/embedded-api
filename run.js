@@ -63,7 +63,7 @@ async function run() {
 
   try {
 
-    const api = init(fetch, () => cookieJar.removeAllCookies(), { record })
+    const api = init(fetch, cookieJar, { record })
     const status = await api.login(personalNumber)
     status.on('PENDING', () => console.log('PENDING'))
     status.on('USER_SIGN', () => console.log('USER_SIGN'))
@@ -77,7 +77,8 @@ async function run() {
     api.on('login', async () => {
       console.log('Logged in')
 
-      console.log(api.getSessionCookie())
+      const session = await api.getSession('https://etjanst.stockholm.se')
+      console.log(session)
 
       console.log('user')
       const user = await api.getUser()

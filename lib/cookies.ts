@@ -57,7 +57,7 @@ export const deserialize: Deserializer = (cookieString) => {
 interface ToughCookie {
   toString: () => string
 }
-interface ToughCookieJar {
+export interface ToughCookieJar {
   getCookieString: (url: string) => Promise<string>
   getCookies: (url: string) => Promise<ToughCookie[]>
   setCookie: (cookie: string, url: string) => Promise<any>
@@ -81,7 +81,7 @@ export const wrapToughCookie = (jar: ToughCookieJar): CookieManager => ({
 interface RNCookies {
   [key: string]: Cookie
 }
-interface RNCookieManager {
+export interface RNCookieManager {
   set(url: string, cookie: Cookie, useWebKit?: boolean): Promise<boolean>
   setFromResponse(url: string, cookie: string): Promise<boolean>
   get(url: string, useWebKit?: boolean): Promise<RNCookies>
