@@ -24,6 +24,7 @@ import * as routes from './routes'
 import * as parse from './parse'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
+import { CookieManager } from './cookies'
 
 const apiKeyRegex = /"API-Key": "([\w\d]+)"/gm
 
@@ -38,16 +39,16 @@ export class Api extends EventEmitter {
 
   private session?: RequestInit
 
-  private clearCookies: AsyncishFunction
+  private cookieManager: CookieManager
 
   public isLoggedIn: boolean = false
 
   public isFake: boolean = false
 
-  constructor(fetch: Fetch, clearCookies: AsyncishFunction, options?: FetcherOptions) {
+  constructor(fetch: Fetch, cookieManager: CookieManager, options?: FetcherOptions) {
     super()
     this.fetch = wrap(fetch, options)
-    this.clearCookies = clearCookies
+    this.cookieManager = cookieManager
   }
 
   getPersonalNumber() {

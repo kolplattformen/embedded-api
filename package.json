@@ -19,6 +19,7 @@
     "publish-package": "npm publish --access public"
   },
   "devDependencies": {
+    "@react-native-cookies/cookies": "^6.0.4",
     "@types/jest": "^26.0.19",
     "@types/luxon": "^1.25.0",
     "@types/node-fetch": "^2.5.7",

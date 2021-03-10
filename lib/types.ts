@@ -1,4 +1,22 @@
-export interface AsyncishFunction { (): void | Promise<void> }
+export interface Cookie {
+  name: string
+  value: string
+  path?: string
+  domain?: string
+  version?: string
+  expires?: string
+  secure?: boolean
+  httpOnly?: boolean
+  [key: string]: string|boolean|undefined
+}
+
+export interface CookieManager {
+  setCookie: (cookie: Cookie, url: string) => Promise<void>
+  getCookies: (url: string) => Promise<Cookie[]>
+  setCookieString: (cookieString: string, url: string) => Promise<void>
+  getCookieString: (url: string) => Promise<string>
+  clearAll: () => Promise<void>
+}
 
 export interface RequestInit {
   headers?: any

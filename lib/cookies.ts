@@ -1,24 +1,5 @@
 import { camelCase, pascalCase } from 'change-case'
-
-export interface Cookie {
-  name: string
-  value: string
-  path?: string
-  domain?: string
-  version?: string
-  expires?: string
-  secure?: boolean
-  httpOnly?: boolean
-  [key: string]: string|boolean|undefined
-}
-
-export interface CookieManager {
-  setCookie: (cookie: Cookie, url: string) => Promise<void>
-  getCookies: (url: string) => Promise<Cookie[]>
-  setCookieString: (cookieString: string, url: string) => Promise<void>
-  getCookieString: (url: string) => Promise<string>
-  clearAll: () => Promise<void>
-}
+import { Cookie, CookieManager } from './types'
 
 interface Serializer {
   (cookie: Cookie): string
@@ -78,7 +59,7 @@ interface ToughCookieJar {
   setCookie: (cookie: string, url: string) => Promise<any>
   removeAllCookies: () => Promise<void>
 }
-const wrapToughCookie = (jar: ToughCookieJar): CookieManager => ({
+export const wrapToughCookie = (jar: ToughCookieJar): CookieManager => ({
   getCookieString: (url) => jar.getCookieString(url),
   getCookies: async (url) => {
     const cookies = await jar.getCookies(url)
@@ -90,7 +71,33 @@ const wrapToughCookie = (jar: ToughCookieJar): CookieManager => ({
   setCookieString: async (cookieString, url) => {
     await jar.setCookie(cookieString, url)
   },
-  clearAll: () => jar.removeAllCookies()
+  clearAll: () => jar.removeAllCookies(),
 })
 
-export const wrap = (implementation: ToughCookieJar): CookieManager => wrapToughCookie(implementation)
+interface RNCookies {
+  [key: string]: Cookie
+}
+interface RNCookieManager {
+  set(url: string, cookie: Cookie, useWebKit?: boolean): Promise<boolean>
+  setFromResponse(url: string, cookie: string): Promise<boolean>
+  get(url: string, useWebKit?: boolean): Promise<RNCookies>
+  clearAll(useWebKit?: boolean): Promise<boolean>
+}
+export const wrapReactNativeCookieManager = (rnc: RNCookieManager): CookieManager => ({
+  clearAll: () => rnc.clearAll().then(),
+  getCookieString: async (url) => {
+    const cookies = await rnc.get(url)
+    return Object.values(cookies)
+      .map((c) => `${c.name}=${c.value}`).join('; ')
+  },
+  getCookies: async (url) => {
+    const cookies = await rnc.get(url)
+    return Object.values(cookies)
+  },
+  setCookie: async (cookie, url) => {
+
+  },
+  setCookieString: async (cookieString, url) => {
+
+  },
+})
