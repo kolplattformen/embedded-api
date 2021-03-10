@@ -7,7 +7,6 @@ export interface Cookie {
   expires?: string
   secure?: boolean
   httpOnly?: boolean
-  [key: string]: string|boolean|undefined
 }
 
 export interface CookieManager {

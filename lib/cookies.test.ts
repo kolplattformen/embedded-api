@@ -236,7 +236,8 @@ describe('CookieManager', () => {
     })
     describe('@react-native-cookies/cookies', () => {
       let manager: CookieManager
-      beforeEach(() => {
+      beforeEach(async () => {
+        await RNCookieManager.clearAll()
         manager = wrapReactNativeCookieManager(RNCookieManager)
       })
       it('handles getCookieString', async () => {
@@ -277,8 +278,9 @@ describe('CookieManager', () => {
         }
 
         await manager.setCookie(cookie, url)
-
         const cookies = await RNCookieManager.get(url)
+
+        expect(cookies).toHaveProperty('foo')
         expect(cookies['foo'].value).toEqual('bar')
       })
       it('handles setCookieString', async () => {
@@ -286,8 +288,9 @@ describe('CookieManager', () => {
         const cookieStr = 'foo=bar; Domain=.stockholm.se; Path=/; Secure; HttpOnly'
 
         await manager.setCookieString(cookieStr, url)
-
         const cookies = await RNCookieManager.get(url)
+
+        expect(cookies).toHaveProperty('foo')
         expect(cookies['foo'].value).toEqual('bar')
       })
       it('handles clearAll', async () => {
@@ -296,8 +299,8 @@ describe('CookieManager', () => {
 
         await manager.setCookieString(cookieStr, url)
         await manager.clearAll()
-
         const cookies = await RNCookieManager.get(url)
+
         expect(cookies).toEqual({})
       })
     })

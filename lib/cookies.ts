@@ -1,6 +1,9 @@
 import { camelCase, pascalCase } from 'change-case'
 import { Cookie, CookieManager } from './types'
 
+interface IndexableCookie extends Cookie {
+  [key: string]: string|boolean|undefined
+}
 interface Serializer {
   (cookie: Cookie): string
 }
@@ -8,15 +11,16 @@ interface Deserializer {
   (cookieString: string): Cookie
 }
 export const serialize: Serializer = (cookie) => {
-  const tokens = [`${cookie.name}=${cookie.value}`]
+  const ic = <IndexableCookie>cookie
+  const tokens = [`${ic.name}=${ic.value}`]
 
   const keyVals = ['expires', 'domain', 'path']
-  keyVals.filter((key) => cookie[key]).forEach((key) => {
-    tokens.push(`${pascalCase(key)}=${cookie[key]}`)
+  keyVals.filter((key) => ic[key]).forEach((key) => {
+    tokens.push(`${pascalCase(key)}=${ic[key]}`)
   })
 
   const bools = ['secure', 'httpOnly']
-  bools.filter((key) => cookie[key]).forEach((key) => {
+  bools.filter((key) => ic[key]).forEach((key) => {
     tokens.push(pascalCase(key))
   })
 
@@ -95,9 +99,9 @@ export const wrapReactNativeCookieManager = (rnc: RNCookieManager): CookieManage
     return Object.values(cookies)
   },
   setCookie: async (cookie, url) => {
-
+    await rnc.setFromResponse(url, serialize(cookie))
   },
   setCookieString: async (cookieString, url) => {
-
+    await rnc.setFromResponse(url, cookieString)
   },
 })
