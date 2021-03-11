@@ -21,6 +21,7 @@ export interface RequestInit {
   headers?: any
   method?: string
   body?: string
+  credentials?: string
 }
 
 export interface Headers {

@@ -54,13 +54,12 @@ export class Api extends EventEmitter {
   }
 
   async getSession(url: string, options: RequestInit = {}): Promise<RequestInit> {
-    const cookie = await this.cookieManager.getCookieString(url)
     return {
       ...options,
       headers: {
         ...this.headers,
         ...options.headers,
-        cookie,
+        cookie: '',
       },
     }
   }
@@ -168,20 +167,11 @@ export class Api extends EventEmitter {
         Connection: 'keep-alive',
       },
       body: authBody,
+      credentials: 'omit',
     })
-
-    // Delete cookies from session and empty cookie manager
-    delete session.headers.cookie
-    const cookies = await this.cookieManager.getCookies(url)
-    await this.cookieManager.clearAll()
 
     // Perform request
     const response = await this.fetch('createItem', url, session)
-
-    // Refill cookie manager
-    cookies.forEach((cookie) => {
-      this.cookieManager.setCookie(cookie, url)
-    })
 
     if (!response.ok) {
       throw new Error(`Server Error [${response.status}] [${response.statusText}] [${url}]`)
