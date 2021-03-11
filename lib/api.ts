@@ -150,7 +150,8 @@ export class Api extends EventEmitter {
   }
 
   async retrieveAuthToken(url: string, authBody: string): Promise<string> {
-    const cdnHost = new URL(url).host
+    // Unfortunately we can't use new Url(url).host in React-native. It is not implemented.
+    const cdnHost = Api.getTheHostNameFromUrl(url)
     const session = await this.getSession(url, {
       method: 'POST',
       headers: {
@@ -182,6 +183,19 @@ export class Api extends EventEmitter {
 
     const authData = await response.json()
     return authData.token
+  }
+
+  private static getTheHostNameFromUrl(websiteURL : string) {
+    let hostname
+    if (websiteURL.indexOf('//') > -1) {
+      [, , hostname] = websiteURL.split('/')
+    } else {
+      [hostname] = websiteURL.split('/')
+    }
+
+    [hostname] = hostname.split(':');
+    [hostname] = hostname.split('?')
+    return hostname
   }
 
   async fakeMode(): Promise<LoginStatusChecker> {
