@@ -173,7 +173,7 @@ export class Api extends EventEmitter {
     // Delete cookies from session and empty cookie manager
     delete session.headers.cookie
     const cookies = await this.cookieManager.getCookies(url)
-    this.cookieManager.clearAll()
+    await this.cookieManager.clearAll()
 
     // Perform request
     const response = await this.fetch('createItem', url, session)
