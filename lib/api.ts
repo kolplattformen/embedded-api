@@ -162,13 +162,19 @@ export class Api extends EventEmitter {
       },
       body: authBody,
     })
+
+    // Delete cookies from session and empty cookie manager
     delete session.headers.cookie
-    // const cookies = await this.cookieManager.getCookies(url)
-    // this.cookieManager.clearAll()
+    const cookies = await this.cookieManager.getCookies(url)
+    this.cookieManager.clearAll()
+
+    // Perform request
     const response = await this.fetch('createItem', url, session)
-    // cookies.forEach((cookie) => {
-    //   this.cookieManager.setCookie(cookie, url)
-    // })
+
+    // Refill cookie manager
+    cookies.forEach((cookie) => {
+      this.cookieManager.setCookie(cookie, url)
+    })
 
     if (!response.ok) {
       throw new Error(`Server Error [${response.status}] [${response.statusText}] [${url}]`)
