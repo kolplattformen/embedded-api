@@ -115,8 +115,14 @@ export class Api extends EventEmitter {
     const session = await this.getSession(url)
     const response = await this.fetch('hemPage', url, session)
     const text = await response.text()
-    const doc = html.parse(decode(text))
-    const xsrfToken = doc.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value') || ''
+
+    const doc = html.parse(decode(text || ''))
+    const htmlInput = doc.querySelector('input[name="__RequestVerificationToken"]')
+    if (htmlInput === null) {
+      // throw new Error('Could not find XSRF-token input field on page')
+      return
+    }
+    const xsrfToken = htmlInput.getAttribute('value') || ''
     this.addHeader('X-XSRF-Token', xsrfToken)
   }
 
