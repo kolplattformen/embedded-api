@@ -157,10 +157,18 @@ export class Api extends EventEmitter {
         Accept: 'text/plain',
         Host: cdnHost,
         Origin: 'https://etjanst.stockholm.se',
+        Referer: 'https://etjanst.stockholm.se/',
+        Connection: 'keep-alive',
       },
       body: authBody,
     })
+    delete session.headers.cookie
+    const cookies = await this.cookieManager.getCookies(url)
+    this.cookieManager.clearAll()
     const response = await this.fetch('createItem', url, session)
+    cookies.forEach((cookie) => {
+      this.cookieManager.setCookie(cookie, url)
+    })
 
     if (!response.ok) {
       throw new Error(`Server Error [${response.status}] [${response.statusText}] [${url}]`)
