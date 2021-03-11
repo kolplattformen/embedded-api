@@ -16,6 +16,7 @@ const { DateTime } = require('luxon')
 const nodeFetch = require('node-fetch')
 const { CookieJar } = require('tough-cookie')
 const fetchCookie = require('fetch-cookie/node-fetch')
+const credentialsFetchWrapper = require('./credentials-fetch-wrapper')
 const { writeFile } = require('fs/promises')
 const path = require('path')
 const fs = require('fs')
@@ -73,7 +74,8 @@ const record = async (info, data) => {
 
 async function run() {
   const cookieJar = new CookieJar()
-  const fetch = fetchCookie(nodeFetch, cookieJar)
+  const credentialsFetch = credentialsFetchWrapper(nodeFetch)
+  const fetch = fetchCookie(credentialsFetch, cookieJar)
 
   try {
 
@@ -107,9 +109,15 @@ async function run() {
       const classmates = await api.getClassmates(children[0])
       console.log(classmates)
 
+      // Remote schedule api is unstable
       console.log('schedule')
-      const schedule = await api.getSchedule(children[0], DateTime.local(), DateTime.local().plus({ week: 1 }))
-      console.log(schedule)
+      try {
+        const schedule = await api.getSchedule(children[0], DateTime.local(), DateTime.local().plus({ week: 1 }))
+        console.log(schedule)
+      } catch (error) {
+        console.log('Schedule threw error =>', error)
+      }
+     
 
       console.log('news')
       const news = await api.getNews(children[0])
