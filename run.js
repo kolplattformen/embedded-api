@@ -9,8 +9,8 @@ function requestLogger(httpModule){
   }
 }
 
-// requestLogger(require('http'))
-// requestLogger(require('https'))
+requestLogger(require('http'))
+requestLogger(require('https'))
 
 const { DateTime } = require('luxon')
 const nodeFetch = require('node-fetch')

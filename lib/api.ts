@@ -163,12 +163,12 @@ export class Api extends EventEmitter {
       body: authBody,
     })
     delete session.headers.cookie
-    const cookies = await this.cookieManager.getCookies(url)
-    this.cookieManager.clearAll()
+    // const cookies = await this.cookieManager.getCookies(url)
+    // this.cookieManager.clearAll()
     const response = await this.fetch('createItem', url, session)
-    cookies.forEach((cookie) => {
-      this.cookieManager.setCookie(cookie, url)
-    })
+    // cookies.forEach((cookie) => {
+    //   this.cookieManager.setCookie(cookie, url)
+    // })
 
     if (!response.ok) {
       throw new Error(`Server Error [${response.status}] [${response.statusText}] [${url}]`)
