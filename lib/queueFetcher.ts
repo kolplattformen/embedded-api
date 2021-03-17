@@ -6,18 +6,18 @@ export interface QueueEntry {
   queue : AutoQueue
 }
 
-export default class Fetcher {
+export default class QueueFetcher {
   private queues: RoundRobinArray<QueueEntry>
 
   private currentRunningQueue : QueueEntry | undefined
 
-  private changeChildFunc : (childId : string) => Promise<string>
+  private changeChildFunc : (childId : string) => Promise<any>
 
   private scheduleTimeout: any
 
   verboseDebug: boolean = false
 
-  constructor(changeChildFunc : (childId : string) => Promise<string>) {
+  constructor(changeChildFunc : (childId : string) => Promise<any>) {
     this.changeChildFunc = changeChildFunc
     this.queues = new RoundRobinArray(new Array<QueueEntry>())
   }

@@ -46,7 +46,7 @@ export class Api extends EventEmitter {
 
   constructor(fetch: Fetch, cookieManager: CookieManager, options?: FetcherOptions) {
     super()
-    this.fetch = wrap(fetch, options)
+    this.fetch = wrap(fetch, options, (childId) => this.selectChildById(childId))
     this.cookieManager = cookieManager
     this.headers = {}
   }
@@ -242,6 +242,14 @@ export class Api extends EventEmitter {
   }
 
   public async selectChild(child : Child): Promise<Child> {
+    const response = await this.selectChildById(child.id)
+
+    this.checkAndThrowIfNotSuccess(response)
+    const data = await response.json()
+    return parse.child(parse.etjanst(data))
+  }
+
+  private async selectChildById(childId: string) {
     const requestInit = this.getRequestInit({
       method: 'POST',
       headers: {
@@ -253,15 +261,12 @@ export class Api extends EventEmitter {
         referer: 'https://etjanst.stockholm.se/vardnadshavare/inloggad2/hem',
       },
       body: JSON.stringify({
-        id: child.id,
+        id: childId,
       }),
     })
 
     const response = await this.fetch('selectChild', routes.selectChild, requestInit)
-
-    this.checkAndThrowIfNotSuccess(response)
-    const data = await response.json()
-    return parse.child(parse.etjanst(data))
+    return response
   }
 
   public async getCalendar(child: Child): Promise<CalendarItem[]> {
@@ -310,7 +315,7 @@ export class Api extends EventEmitter {
     }
     const url = routes.newsDetails(child.id, item.id)
     const session = this.getRequestInit()
-    const response = await this.fetch(`news_${item.id}`, url, session)
+    const response = await this.fetch(`news_${item.id}`, url, session, child.id)
     const data = await response.json()
     return parse.newsItemDetails(data)
   }
