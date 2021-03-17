@@ -34,7 +34,8 @@ export interface Response {
   status: number
   statusText: string
   text: () => Promise<string>
-  json: () => Promise<any>
+  json: () => Promise<any>,
+  url: string
 }
 
 export interface Fetch {

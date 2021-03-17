@@ -51,3 +51,5 @@ export const auth = 'https://etjanst.stockholm.se/vardnadshavare/base/auth'
 export const startBundle = 'https://etjanst.stockholm.se/vardnadshavare/bundles/start'
 
 export const hemPage = 'https://etjanst.stockholm.se/vardnadshavare/inloggad2/hem'
+
+export const selectChild = 'https://etjanst.stockholm.se/vardnadshavare/inloggad2/SelectChild'

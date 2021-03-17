@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { EventEmitter } from 'events'
 import { decode } from 'he'
 import * as html from 'node-html-parser'
+import { HTTPResponseError } from './HttpResponseError'
 import {
   checkStatus,
   LoginStatusChecker,
@@ -19,6 +20,7 @@ import {
   RequestInit,
   ScheduleItem,
   User,
+  Response,
 } from './types'
 import * as routes from './routes'
 import * as parse from './parse'
@@ -239,6 +241,29 @@ export class Api extends EventEmitter {
     return parse.children(data)
   }
 
+  public async selectChild(child : Child): Promise<Child> {
+    const requestInit = this.getRequestInit({
+      method: 'POST',
+      headers: {
+        host: 'etjanst.stockholm.se',
+        accept: 'application/json, text/plain, */*',
+        'accept-Encoding': 'gzip, deflate',
+        'content-Type': 'application/json;charset=UTF-8',
+        origin: 'https://etjanst.stockholm.se',
+        referer: 'https://etjanst.stockholm.se/vardnadshavare/inloggad2/hem',
+      },
+      body: JSON.stringify({
+        id: child.id,
+      }),
+    })
+
+    const response = await this.fetch('selectChild', routes.selectChild, requestInit)
+
+    this.checkAndThrowIfNotSuccess(response)
+    const data = await response.json()
+    return parse.child(parse.etjanst(data))
+  }
+
   public async getCalendar(child: Child): Promise<CalendarItem[]> {
     if (this.isFake) return fakeResponse(fake.calendar(child))
 
@@ -316,5 +341,15 @@ export class Api extends EventEmitter {
     this.isLoggedIn = false
     this.emit('logout')
     await this.clearSession()
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private checkAndThrowIfNotSuccess(response : Response) {
+    if (response.ok) {
+      // response.status >= 200 && response.status < 300
+      return response
+    }
+    console.log(`HTTP Error Response: [${response.status}] [${response.statusText}] [${response.url}]`)
+    throw new HTTPResponseError(response, response.url)
   }
 }

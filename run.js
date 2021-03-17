@@ -102,6 +102,10 @@ async function run() {
       console.log('children')
       const children = await api.getChildren()
       console.log(children)
+
+      console.log('selectChild')
+      const selected = await api.selectChild(children[1])
+      console.log(selected)
 /*
       console.log('calendar')
       const calendar = await api.getCalendar(children[0])
@@ -121,6 +125,7 @@ async function run() {
       }
      
 */
+/*
       console.log('news')
       const news = await api.getNews(children[0])
 
@@ -132,7 +137,7 @@ async function run() {
         )
       )
       console.log(newsItems)
-
+*/
       /*console.log('menu')
       const menu = await api.getMenu(children[0])
       console.log(menu)*/
