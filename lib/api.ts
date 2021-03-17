@@ -49,31 +49,42 @@ export class Api extends EventEmitter {
     this.headers = {}
   }
 
-  getPersonalNumber() {
+  public getPersonalNumber(): string | undefined {
     return this.personalNumber
   }
 
-  async getSession(url: string, options: RequestInit = {}): Promise<RequestInit> {
+  private getRequestInit(options: RequestInit = {}): RequestInit {
     return {
       ...options,
       headers: {
         ...this.headers,
         ...options.headers,
-        cookie: '',
       },
     }
   }
 
-  async clearSession(): Promise<void> {
+  public async getSession(url: string, options?: RequestInit): Promise<RequestInit> {
+    const init = this.getRequestInit(options)
+    const cookie = await this.cookieManager.getCookieString(url)
+    return {
+      ...init,
+      headers: {
+        ...init.headers,
+        cookie,
+      },
+    }
+  }
+
+  private async clearSession(): Promise<void> {
     this.headers = {}
     await this.cookieManager.clearAll()
   }
 
-  addHeader(name: string, value: string): void {
+  private addHeader(name: string, value: string): void {
     this.headers[name] = value
   }
 
-  async login(personalNumber: string): Promise<LoginStatusChecker> {
+  public async login(personalNumber: string): Promise<LoginStatusChecker> {
     if (personalNumber.endsWith('1212121212')) return this.fakeMode()
 
     this.isFake = false
@@ -104,14 +115,14 @@ export class Api extends EventEmitter {
     return status
   }
 
-  async retrieveSessionCookie(): Promise<void> {
+  private async retrieveSessionCookie(): Promise<void> {
     const url = routes.loginCookie
     await this.fetch('login-cookie', url)
   }
 
-  async retrieveXsrfToken(): Promise<void> {
+  private async retrieveXsrfToken(): Promise<void> {
     const url = routes.hemPage
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('hemPage', url, session)
     const text = await response.text()
 
@@ -125,9 +136,9 @@ export class Api extends EventEmitter {
     this.addHeader('X-XSRF-Token', xsrfToken)
   }
 
-  async retrieveApiKey(): Promise<void> {
+  private async retrieveApiKey(): Promise<void> {
     const url = routes.startBundle
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('startBundle', url, session)
     const text = await response.text()
 
@@ -138,30 +149,27 @@ export class Api extends EventEmitter {
     this.addHeader('API-Key', apiKey)
   }
 
-  async retrieveCdnUrl(): Promise<string> {
+  private async retrieveCdnUrl(): Promise<string> {
     const url = routes.cdn
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('cdn', url, session)
     const cdnUrl = await response.text()
     return cdnUrl
   }
 
-  async retrieveAuthBody(): Promise<string> {
+  private async retrieveAuthBody(): Promise<string> {
     const url = routes.auth
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('auth', url, session)
     const authBody = await response.text()
     return authBody
   }
 
-  async retrieveAuthToken(url: string, authBody: string): Promise<string> {
-    // Unfortunately we can't use new Url(url).host in React-native. It is not implemented.
-    const cdnHost = Api.getTheHostNameFromUrl(url)
-    const session = await this.getSession(url, {
+  private async retrieveAuthToken(url: string, authBody: string): Promise<string> {
+    const session = this.getRequestInit({
       method: 'POST',
       headers: {
         Accept: 'text/plain',
-        Host: cdnHost,
         Origin: 'https://etjanst.stockholm.se',
         Referer: 'https://etjanst.stockholm.se/',
         Connection: 'keep-alive',
@@ -169,6 +177,7 @@ export class Api extends EventEmitter {
       body: authBody,
       credentials: 'omit',
     })
+    delete session.headers['API-Key']
 
     // Perform request
     const response = await this.fetch('createItem', url, session)
@@ -179,19 +188,6 @@ export class Api extends EventEmitter {
 
     const authData = await response.json()
     return authData.token
-  }
-
-  private static getTheHostNameFromUrl(websiteURL : string) {
-    let hostname
-    if (websiteURL.indexOf('//') > -1) {
-      [, , hostname] = websiteURL.split('/')
-    } else {
-      [hostname] = websiteURL.split('/')
-    }
-
-    [hostname] = hostname.split(':');
-    [hostname] = hostname.split('?')
-    return hostname
   }
 
   async fakeMode(): Promise<LoginStatusChecker> {
@@ -207,17 +203,17 @@ export class Api extends EventEmitter {
     return emitter
   }
 
-  async getUser(): Promise<User> {
+  public async getUser(): Promise<User> {
     if (this.isFake) return fakeResponse(fake.user())
 
     const url = routes.user
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('user', url, session)
     const data = await response.json()
     return parse.user(data)
   }
 
-  async getChildren(): Promise<Child[]> {
+  public async getChildren(): Promise<Child[]> {
     if (this.isFake) return fakeResponse(fake.children())
 
     const cdnUrl = await this.retrieveCdnUrl()
@@ -225,7 +221,7 @@ export class Api extends EventEmitter {
     const token = await this.retrieveAuthToken(cdnUrl, authBody)
 
     const url = routes.children
-    const session = await this.getSession(url, {
+    const session = this.getRequestInit({
       headers: {
         Accept: 'application/json;odata=verbose',
         Auth: token,
@@ -235,8 +231,6 @@ export class Api extends EventEmitter {
     })
     const response = await this.fetch('children', url, session)
 
-    console.log(session.headers)
-    console.log('children response', response)
     if (!response.ok) {
       throw new Error(`Server Error [${response.status}] [${response.statusText}] [${url}]`)
     }
@@ -245,78 +239,78 @@ export class Api extends EventEmitter {
     return parse.children(data)
   }
 
-  async getCalendar(child: Child): Promise<CalendarItem[]> {
+  public async getCalendar(child: Child): Promise<CalendarItem[]> {
     if (this.isFake) return fakeResponse(fake.calendar(child))
 
     const url = routes.calendar(child.id)
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('calendar', url, session)
     const data = await response.json()
     return parse.calendar(data)
   }
 
-  async getClassmates(child: Child): Promise<Classmate[]> {
+  public async getClassmates(child: Child): Promise<Classmate[]> {
     if (this.isFake) return fakeResponse(fake.classmates(child))
 
     const url = routes.classmates(child.sdsId)
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('classmates', url, session)
     const data = await response.json()
     return parse.classmates(data)
   }
 
-  async getSchedule(child: Child, from: DateTime, to: DateTime): Promise<ScheduleItem[]> {
+  public async getSchedule(child: Child, from: DateTime, to: DateTime): Promise<ScheduleItem[]> {
     if (this.isFake) return fakeResponse(fake.schedule(child))
 
     const url = routes.schedule(child.sdsId, from.toISODate(), to.toISODate())
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('schedule', url, session)
     const data = await response.json()
     return parse.schedule(data)
   }
 
-  async getNews(child: Child): Promise<NewsItem[]> {
+  public async getNews(child: Child): Promise<NewsItem[]> {
     if (this.isFake) return fakeResponse(fake.news(child))
 
     const url = routes.news(child.id)
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('news', url, session)
     const data = await response.json()
     return parse.news(data)
   }
 
-  async getNewsDetails(child: Child, item: NewsItem): Promise<any> {
+  public async getNewsDetails(child: Child, item: NewsItem): Promise<any> {
     if (this.isFake) {
       return fakeResponse(fake.news(child).find((ni) => ni.id === item.id))
     }
     const url = routes.newsDetails(child.id, item.id)
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch(`news_${item.id}`, url, session)
     const data = await response.json()
     return parse.newsItemDetails(data)
   }
 
-  async getMenu(child: Child): Promise<MenuItem[]> {
+  public async getMenu(child: Child): Promise<MenuItem[]> {
     if (this.isFake) return fakeResponse(fake.menu(child))
 
     const url = routes.menu(child.id)
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('menu', url, session)
     const data = await response.json()
     return parse.menu(data)
   }
 
-  async getNotifications(child: Child): Promise<Notification[]> {
+  public async getNotifications(child: Child): Promise<Notification[]> {
     if (this.isFake) return fakeResponse(fake.notifications(child))
 
     const url = routes.notifications(child.sdsId)
-    const session = await this.getSession(url)
+    const session = this.getRequestInit()
     const response = await this.fetch('notifications', url, session)
     const data = await response.json()
     return parse.notifications(data)
   }
 
-  async logout() {
+  public async logout() {
     this.isFake = false
     this.personalNumber = undefined
     this.isLoggedIn = false

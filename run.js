@@ -1,3 +1,4 @@
+/*
 function requestLogger(httpModule){
   var original = httpModule.request
   httpModule.request = function(options, callback){
@@ -11,6 +12,7 @@ function requestLogger(httpModule){
 
 requestLogger(require('http'))
 requestLogger(require('https'))
+*/
 
 const { DateTime } = require('luxon')
 const nodeFetch = require('node-fetch')
@@ -93,14 +95,14 @@ async function run() {
     api.on('login', async () => {
       console.log('Logged in')
 
-      console.log('user')
-      const user = await api.getUser()
-      console.log(user)
+      // console.log('user')
+      // const user = await api.getUser()
+      // console.log(user)
 
       console.log('children')
       const children = await api.getChildren()
       console.log(children)
-
+/*
       console.log('calendar')
       const calendar = await api.getCalendar(children[0])
       console.log(calendar)
@@ -118,26 +120,26 @@ async function run() {
         console.log('Schedule threw error =>', error)
       }
      
-
+*/
       console.log('news')
       const news = await api.getNews(children[0])
 
-      /*console.log('news details')
+      console.log('news details')
       const newsItems = await Promise.all(
-        news.map((newsItem) =>
+        news.slice(0, 3).map((newsItem) =>
           api.getNewsDetails(children[0], newsItem)
             .catch((err) => { console.error(newsItem.id, err) })
         )
       )
-      console.log(newsItems)*/
+      console.log(newsItems)
 
       /*console.log('menu')
       const menu = await api.getMenu(children[0])
       console.log(menu)*/
 
-      console.log('notifications')
-      const notifications = await api.getNotifications(children[0])
-      console.log(notifications)
+      // console.log('notifications')
+      // const notifications = await api.getNotifications(children[0])
+      // console.log(notifications)
 
       await api.logout()
     })
