@@ -1,4 +1,4 @@
-import AutoQueue from './queue'
+import AutoQueue from './autoQueue'
 import RoundRobinArray from './roundRobinArrray'
 
 export interface QueueEntry {
