@@ -274,7 +274,7 @@ export class Api extends EventEmitter {
 
     const url = routes.calendar(child.id)
     const session = this.getRequestInit()
-    const response = await this.fetch('calendar', url, session)
+    const response = await this.fetch('calendar', url, session, child.id)
     const data = await response.json()
     return parse.calendar(data)
   }
@@ -284,7 +284,7 @@ export class Api extends EventEmitter {
 
     const url = routes.classmates(child.sdsId)
     const session = this.getRequestInit()
-    const response = await this.fetch('classmates', url, session)
+    const response = await this.fetch('classmates', url, session, child.id)
     const data = await response.json()
     return parse.classmates(data)
   }
@@ -294,7 +294,7 @@ export class Api extends EventEmitter {
 
     const url = routes.schedule(child.sdsId, from.toISODate(), to.toISODate())
     const session = this.getRequestInit()
-    const response = await this.fetch('schedule', url, session)
+    const response = await this.fetch('schedule', url, session, child.id)
     const data = await response.json()
     return parse.schedule(data)
   }
@@ -304,7 +304,7 @@ export class Api extends EventEmitter {
 
     const url = routes.news(child.id)
     const session = this.getRequestInit()
-    const response = await this.fetch('news', url, session)
+    const response = await this.fetch('news', url, session, child.id)
     const data = await response.json()
     return parse.news(data)
   }
@@ -325,7 +325,7 @@ export class Api extends EventEmitter {
 
     const url = routes.menu(child.id)
     const session = this.getRequestInit()
-    const response = await this.fetch('menu', url, session)
+    const response = await this.fetch('menu', url, session, child.id)
     const data = await response.json()
     return parse.menu(data)
   }
@@ -335,7 +335,7 @@ export class Api extends EventEmitter {
 
     const url = routes.notifications(child.sdsId)
     const session = this.getRequestInit()
-    const response = await this.fetch('notifications', url, session)
+    const response = await this.fetch('notifications', url, session, child.id)
     const data = await response.json()
     return parse.notifications(data)
   }
