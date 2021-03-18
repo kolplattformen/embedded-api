@@ -105,7 +105,6 @@ export class Api extends EventEmitter {
     status.on('OK', async () => {
       await this.retrieveSessionCookie()
       await this.retrieveXsrfToken()
-      await this.retrieveApiKey()
 
       this.isLoggedIn = true
       this.emit('login')
@@ -128,7 +127,6 @@ export class Api extends EventEmitter {
     })
 
     await this.retrieveXsrfToken()
-    await this.retrieveApiKey()
 
     this.isLoggedIn = true
     this.emit('login')
@@ -149,19 +147,6 @@ export class Api extends EventEmitter {
     this.addHeader('X-XSRF-Token', xsrfToken)
   }
 
-  private async retrieveApiKey(): Promise<void> {
-    const url = routes.startBundle
-    const session = this.getRequestInit()
-    const response = await this.fetch('startBundle', url, session)
-    const text = await response.text()
-
-    const apiKeyRegex = /"API-Key": "([\w\d]+)"/gm
-    const apiKeyMatches = apiKeyRegex.exec(text)
-    const apiKey = apiKeyMatches && apiKeyMatches.length > 1 ? apiKeyMatches[1] : ''
-
-    this.addHeader('API-Key', apiKey)
-  }
-
   private async retrieveCdnUrl(): Promise<string> {
     const url = routes.cdn
     const session = this.getRequestInit()
@@ -178,7 +163,20 @@ export class Api extends EventEmitter {
     return authBody
   }
 
-  private async retrieveAuthToken(url: string, authBody: string): Promise<string> {
+  private async retrieveSpecialXsrfTokenForAuth() {
+    const url = routes.navigationControllerBundle
+    const session = this.getRequestInit()
+    const response = await this.fetch('navigationControllerBundle', url, session)
+    const text = await response.text()
+
+    const tokenRegExp = /'x-xsrf-token':'([\w\d]+)'/gm
+    const matches = tokenRegExp.exec(text)
+    const token = matches && matches.length > 1 ? matches[1] : ''
+
+    return token
+  }
+
+  private async retrieveAuthToken(url: string, authBody: string, specialXsrfToken : string): Promise<string> {
     const session = this.getRequestInit({
       method: 'POST',
       headers: {
@@ -189,14 +187,16 @@ export class Api extends EventEmitter {
       },
       body: authBody,
     })
-    delete session.headers['API-Key']
+
+    const localSession = JSON.parse(JSON.stringify(session))
+    localSession.headers['X-XSRF-Token'] = specialXsrfToken
 
     // Temporarily remove cookies
     const cookies = await this.cookieManager.getCookies(url)
     this.cookieManager.clearAll()
 
     // Perform request
-    const response = await this.fetch('createItem', url, session)
+    const response = await this.fetch('createItem', url, localSession)
 
     // Restore cookies
     cookies.forEach((cookie) => {
@@ -237,9 +237,13 @@ export class Api extends EventEmitter {
   public async getChildren(): Promise<Child[]> {
     if (this.isFake) return fakeResponse(fake.children())
 
-    const cdnUrl = await this.retrieveCdnUrl()
-    const authBody = await this.retrieveAuthBody()
-    const token = await this.retrieveAuthToken(cdnUrl, authBody)
+    const [cdnUrl, authBody, specialXsrfTokenForAuth] = await Promise.all([
+      this.retrieveCdnUrl(),
+      this.retrieveAuthBody(),
+      this.retrieveSpecialXsrfTokenForAuth(),
+    ])
+
+    const token = await this.retrieveAuthToken(cdnUrl, authBody, specialXsrfTokenForAuth)
 
     const url = routes.children
     const session = this.getRequestInit({

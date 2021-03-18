@@ -42,7 +42,7 @@ async function run() {
       console.log('user')
       const user = await api.getUser()
       console.log(user)
-/*
+      
       console.log('children')
       const children = await api.getChildren()
       console.log(children)

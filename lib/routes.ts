@@ -51,3 +51,5 @@ export const auth = 'https://etjanst.stockholm.se/vardnadshavare/base/auth'
 export const startBundle = 'https://etjanst.stockholm.se/vardnadshavare/bundles/start'
 
 export const hemPage = 'https://etjanst.stockholm.se/vardnadshavare/inloggad2/hem'
+
+export const navigationControllerBundle = 'https://etjanst.stockholm.se/vardnadshavare/bundles/navigationController?v=0LwePIfHvtl7gAzq4jPZfgvqUkXZ90E-nmD5oZkL7D41?nocache=14:40:27'
