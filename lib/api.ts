@@ -120,7 +120,7 @@ export class Api extends EventEmitter {
     await this.fetch('login-cookie', url)
   }
 
-  private async retrieveXsrfToken(): Promise<void>{
+  private async retrieveXsrfToken(): Promise<void> {
     const url = routes.childControllerBundle
     const session = this.getRequestInit()
     const response = await this.fetch('XsrfBundle', url, session)
@@ -169,7 +169,6 @@ export class Api extends EventEmitter {
         Origin: 'https://etjanst.stockholm.se',
         Referer: 'https://etjanst.stockholm.se/',
         Connection: 'keep-alive',
-  //      'x-xsrf-token': 'gS6KG0uPHU_5SmGfeuPbFdrhmkA_PtLX7SJNmrSl2gY3RyqgnuvJMlkySJGiNdGGhl3Sc5_H0gLIw9lXmrnB5QeSxJkKdjM0bdI5S27wKkInKKQWjmZRMSGV3rlH3ah9'
       },
       body: authBody,
     })
