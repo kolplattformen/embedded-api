@@ -71,6 +71,12 @@ export default class QueueFetcher {
       return
     }
 
+    if (nextToRun.id === this.currentRunningQueue.id) {
+      this.debug('Same queue as before was scheduled')
+      this.runNext(nextToRun)
+      return
+    }
+
     const { id: queueToPauseId, queue: queueToPause } = this.currentRunningQueue
     this.debug('Queue to pause', queueToPauseId, queueToPause.getQueueInfo())
 
@@ -104,8 +110,12 @@ export default class QueueFetcher {
 
     this.currentRunningQueue = queueToRun
 
-    this.scheduleTimeout = setTimeout(async () => this.schedule(), 2000)
+    this.setupTimerForSchedule()
     await queue.start()
+  }
+
+  private setupTimerForSchedule() {
+    this.scheduleTimeout = setTimeout(async () => this.schedule(), 4000)
   }
 
   private findNextQueueToRun() : QueueEntry | undefined {
