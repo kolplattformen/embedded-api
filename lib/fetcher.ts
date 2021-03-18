@@ -1,4 +1,4 @@
-import QueueFetcher from './QueueFetcher'
+import QueueFetcher from './queueFetcher'
 import { Fetch, RequestInit, Response } from './types'
 
 export interface CallInfo extends RequestInit {
