@@ -120,18 +120,20 @@ export class Api extends EventEmitter {
     await this.fetch('login-cookie', url)
   }
 
-  private async retrieveXsrfToken(): Promise<void> {
-    const url = routes.hemPage
+  private async retrieveXsrfToken(): Promise<void>{
+    const url = routes.childControllerBundle
     const session = this.getRequestInit()
-    const response = await this.fetch('hemPage', url, session)
+    const response = await this.fetch('XsrfBundle', url, session)
     const text = await response.text()
-    const doc = html.parse(decode(text))
-    const xsrfToken = doc.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value') || ''
-    this.addHeader('X-XSRF-Token', xsrfToken)
+    const xsrfTokenRegex = /'x-xsrf-token':'([\w\d_-]+)'/gm
+    const xsrfTokenMatches = xsrfTokenRegex.exec(text)
+    const xsrfToken = xsrfTokenMatches && xsrfTokenMatches.length > 1 ? xsrfTokenMatches[1] : ''
+
+    this.addHeader('x-xsrf-token', xsrfToken)
   }
 
   private async retrieveApiKey(): Promise<void> {
-    const url = routes.startBundle
+    const url = routes.childControllerBundle
     const session = this.getRequestInit()
     const response = await this.fetch('startBundle', url, session)
     const text = await response.text()
@@ -167,6 +169,7 @@ export class Api extends EventEmitter {
         Origin: 'https://etjanst.stockholm.se',
         Referer: 'https://etjanst.stockholm.se/',
         Connection: 'keep-alive',
+  //      'x-xsrf-token': 'gS6KG0uPHU_5SmGfeuPbFdrhmkA_PtLX7SJNmrSl2gY3RyqgnuvJMlkySJGiNdGGhl3Sc5_H0gLIw9lXmrnB5QeSxJkKdjM0bdI5S27wKkInKKQWjmZRMSGV3rlH3ah9'
       },
       body: authBody,
     })
