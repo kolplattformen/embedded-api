@@ -17,6 +17,7 @@ describe('api', () => {
       status: 200,
       statusText: 'ok',
       headers,
+      url: ''
     }
     fetch = jest.fn().mockResolvedValue(response)
     CookieManager.clearAll()

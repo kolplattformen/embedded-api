@@ -19,9 +19,10 @@ describe('fetcher', () => {
       json: jest.fn(),
       text: jest.fn(),
       headers,
+      url: ''
     }
     fetch = jest.fn().mockResolvedValue(response)
-    fetcher = wrap(fetch)
+    fetcher = wrap(fetch, {}, async (_id) => response)
   })
   it('calls fetch', async () => {
     await fetcher('foo', '/')
@@ -50,7 +51,7 @@ describe('fetcher', () => {
     let expectedInfo: CallInfo
     beforeEach(() => {
       recorder = jest.fn().mockResolvedValue(undefined)
-      fetcher = wrap(fetch, { record: recorder })
+      fetcher = wrap(fetch, { record: recorder }, async (_id) => response)
       expectedInfo = {
         name: 'foo',
         type: '',

@@ -1,4 +1,4 @@
-import QueueFetcher from './QueueFetcher'
+import QueueFetcher from './queueFetcher'
 
 let sut : QueueFetcher
 beforeEach(() => {
