@@ -6,6 +6,14 @@ export interface QueueEntry {
   queue : AutoQueue
 }
 
+/**
+ * Put requests in queues where each childId gets its own queue
+ * The class takes care of calling the provided changeChildFunc
+ * before running the queue.
+ * Why? The external api uses state where the child must be selected
+ * before any calls to News etc can be done.
+ *
+*/
 export default class QueueFetcher {
   private queues: RoundRobinArray<QueueEntry>
 
@@ -17,13 +25,31 @@ export default class QueueFetcher {
 
   private scheduleTimeout: any
 
+  /**
+   * Set to true to console.log verbose information
+   * For debugging mostly
+   */
   verboseDebug: boolean = false
 
+  /**
+   * Creates a new QueueFetcher
+   * @param changeChildFunc function that is called to change the current
+   * selected child on the server
+   */
   constructor(changeChildFunc : (childId : string) => Promise<any>) {
     this.changeChildFunc = changeChildFunc
     this.queues = new RoundRobinArray(new Array<QueueEntry>())
   }
 
+  /**
+   * Queues a fetch - it will be executed together with other calls that
+   * has the same id
+   * @param func function that creates the request to be done. Must be a function
+   * because a Promise is always created in the running state
+   * @param id the id (e.g. childId) that is used to group calls together
+   * @returns a Promise that resolves when the Promise created by the func is resolved
+   * (i.e. is dequeued and executed)
+   */
   public async fetch<T>(func : () => Promise<T>, id : string) : Promise<T> {
     if (!this.queues.array.some((e) => e.id === id)) {
       const newQueue = new AutoQueue(10)
@@ -45,9 +71,14 @@ export default class QueueFetcher {
 
   public get Queues() { return this.queues.array }
 
+  /**
+   * Method to schedule next queue
+   * Public because we need it from unit-tests
+   */
   async schedule() {
+    // Debug print info for all queues
     this.queues.array.forEach(({ id: childId, queue }) => this.debug(
-      'Schedule status: ',
+      'Schedule: ',
       childId, '=>', queue.getQueueInfo(),
     ))
 
@@ -115,7 +146,7 @@ export default class QueueFetcher {
   }
 
   private setupTimerForSchedule() {
-    this.scheduleTimeout = setTimeout(async () => this.schedule(), 4000)
+    this.scheduleTimeout = setTimeout(async () => this.schedule(), 3000)
   }
 
   private findNextQueueToRun() : QueueEntry | undefined {
