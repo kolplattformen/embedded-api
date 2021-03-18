@@ -16,12 +16,13 @@ const init = require('./dist').default
 
 const [, , personalNumber] = process.argv
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+const cookieJar = new CookieJar()
+let bankIdUsed = false
 
 async function run() {
   var agent = new HttpProxyAgent('http://localhost:8080');
   var agentEnabledFetch = agentWrapper(nodeFetch, agent)
 
-  const cookieJar = new CookieJar()
   const fetch = fetchCookie(agentEnabledFetch, cookieJar)
 
   try {
@@ -30,13 +31,21 @@ async function run() {
     api.on('login', async () => {
       console.log('Logged in')
 
+      if (bankIdUsed) {
+        let cookies = await cookieJar.getCookies("https://etjanst.stockholm.se")
+        console.log('cookies =>', cookies)
+        let sessionCookie = cookies.find(c => c.key === 'SMSESSION')
+        console.log('SessionCookie =>')
+        console.log(sessionCookie.value)
+        await writeFile('./record/latestSessionCookie.txt', JSON.stringify(sessionCookie))
+      }
       console.log('user')
       const user = await api.getUser()
       console.log(user)
-
-      // console.log('children')
-      // const children = await api.getChildren()
-      // console.log(children)
+/*
+      console.log('children')
+      const children = await api.getChildren()
+      console.log(children)
 /*
       console.log('calendar')
       const calendar = await api.getCalendar(children[0])
@@ -79,7 +88,7 @@ async function run() {
     })
 
     // Eventhandlers above must be setup before calling login
-    await Login(api)
+    bankIdUsed = await Login(api)
 
   } catch (err) {
     console.error(err)
@@ -116,12 +125,6 @@ async function Login(api) {
       console.log("User cancelled login")
       process.exit(0)
     })
-
-    let cookies = await cookieJar.getCookies("https://etjanst.stockholm.se")
-      let sessionCookie = cookies.find(c => c.key === 'SMSESSION')
-      console.log('SessionCookie =>')
-      console.log(sessionCookie.value)
-      await writeFile('./record/latestSessionCookie.txt', JSON.stringify(sessionCookie))
   }
   return useBankId
 }
