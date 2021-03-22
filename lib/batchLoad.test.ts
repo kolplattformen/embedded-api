@@ -1,6 +1,8 @@
 import { MockedFunction, MockedObject } from 'ts-jest/dist/utils/testing'
+import init from './'
 import { Api } from './api'
 import { Fetch, Response } from './types'
+import CookieManager from '@react-native-cookies/cookies'
 
 describe('batch load', () => {
   let api: Api
@@ -16,7 +18,7 @@ describe('batch load', () => {
       text: jest.fn(),
     }
     fetch = jest.fn().mockResolvedValue(response)
-    api = new Api(fetch, () => { })
+    api = init(fetch, CookieManager)
   })
   it('sets batchMode to false as default', () => {
     expect(api.batchMode).toBe(false)

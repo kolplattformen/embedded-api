@@ -98,11 +98,11 @@ async function run() {
       console.log('children')
       const children = await api.getChildren()
       console.log(children)
-/*
+
       console.log('calendar')
       const calendar = await api.getCalendar(children[0])
       console.log(calendar)
-
+/*
       console.log('classmates')
       const classmates = await api.getClassmates(children[0])
       console.log(classmates)
@@ -110,18 +110,18 @@ async function run() {
       console.log('schedule')
       const schedule = await api.getSchedule(children[0], DateTime.local(), DateTime.local().plus({ week: 1 }))
       console.log(schedule)
-
+*/
       console.log('news')
       const news = await api.getNews(children[0])
-*/
-      /*console.log('news details')
+
+      console.log('news details')
       const newsItems = await Promise.all(
         news.map((newsItem) =>
           api.getNewsDetails(children[0], newsItem)
             .catch((err) => { console.error(newsItem.id, err) })
         )
       )
-      console.log(newsItems)*/
+      console.log(newsItems)
 
       /*console.log('menu')
       const menu = await api.getMenu(children[0])

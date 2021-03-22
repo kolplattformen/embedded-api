@@ -49,7 +49,6 @@ export default function wrap(fetch: Fetch, options: FetcherOptions = {}): Fetche
     name: string,
     url: string,
     init: RequestInit = { headers: {} },
-    _batchOn?: string,
   ): Promise<Response> => {
     const response = await fetch(url, {
       ...init,

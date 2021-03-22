@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import { DateTime } from 'luxon'
 import { EventEmitter } from 'events'
 import { decode } from 'he'
@@ -24,6 +25,7 @@ import * as routes from './routes'
 import * as parse from './parse'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
+import lock, { Lock } from './lock'
 
 const fakeResponse = <T>(data: T): Promise<T> => new Promise((res) => (
   setTimeout(() => res(data), 200 + Math.random() * 800)
@@ -194,8 +196,8 @@ export class Api extends EventEmitter {
       ...session,
       headers: {
         ...session.headers,
-        'x-xsrf-token': createItemXsrfToken
-      }
+        'x-xsrf-token': createItemXsrfToken,
+      },
     })
 
     // Restore cookies
@@ -262,6 +264,11 @@ export class Api extends EventEmitter {
     return parsed
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async selectChild(child: Child): Promise<void> {
+    // Do something
+  }
+
   public async getCalendar(child: Child): Promise<CalendarItem[]> {
     if (this.isFake) return fakeResponse(fake.calendar(child))
 
@@ -285,32 +292,69 @@ export class Api extends EventEmitter {
   public async getSchedule(child: Child, from: DateTime, to: DateTime): Promise<ScheduleItem[]> {
     if (this.isFake) return fakeResponse(fake.schedule(child))
 
-    const url = routes.schedule(child.sdsId, from.toISODate(), to.toISODate())
-    const session = this.getRequestInit()
-    const response = await this.fetch('schedule', url, session)
-    const data = await response.json()
-    return parse.schedule(data)
+    let readLock: Lock | undefined
+    try {
+      if (this.batchMode) {
+        readLock = await lock(child.id)
+        await this.selectChild(child)
+      }
+
+      const url = routes.schedule(child.sdsId, from.toISODate(), to.toISODate())
+      const session = this.getRequestInit()
+      const response = await this.fetch('schedule', url, session)
+      const data = await response.json()
+      return parse.schedule(data)
+    } finally {
+      if (readLock) {
+        readLock.release()
+      }
+    }
   }
 
   public async getNews(child: Child): Promise<NewsItem[]> {
     if (this.isFake) return fakeResponse(fake.news(child))
 
-    const url = routes.news(child.id)
-    const session = this.getRequestInit()
-    const response = await this.fetch('news', url, session)
-    const data = await response.json()
-    return parse.news(data)
+    let readLock: Lock | undefined
+    try {
+      if (this.batchMode) {
+        readLock = await lock(child.id)
+        await this.selectChild(child)
+      }
+
+      const url = routes.news(child.id)
+      const session = this.getRequestInit()
+      const response = await this.fetch('news', url, session)
+      const data = await response.json()
+      return parse.news(data)
+    } finally {
+      if (readLock) {
+        readLock.release()
+      }
+    }
   }
 
   public async getNewsDetails(child: Child, item: NewsItem): Promise<any> {
     if (this.isFake) {
       return fakeResponse(fake.news(child).find((ni) => ni.id === item.id))
     }
-    const url = routes.newsDetails(child.id, item.id)
-    const session = this.getRequestInit()
-    const response = await this.fetch(`news_${item.id}`, url, session)
-    const data = await response.json()
-    return parse.newsItemDetails(data)
+
+    let readLock: Lock | undefined
+    try {
+      if (this.batchMode) {
+        readLock = await lock(child.id)
+        await this.selectChild(child)
+      }
+
+      const url = routes.newsDetails(child.id, item.id)
+      const session = this.getRequestInit()
+      const response = await this.fetch(`news_${item.id}`, url, session)
+      const data = await response.json()
+      return parse.newsItemDetails(data)
+    } finally {
+      if (readLock) {
+        readLock.release()
+      }
+    }
   }
 
   public async getMenu(child: Child): Promise<MenuItem[]> {
