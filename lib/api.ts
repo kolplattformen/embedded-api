@@ -163,7 +163,7 @@ export class Api extends EventEmitter {
     const response = await this.fetch('childcontrollerScript', url, {})
     const text = await response.text()
 
-    const xsrfRegExp = /'x-xsrf-token2':[ ]?'([\w\d_-]+)'/gim
+    const xsrfRegExp = /'x-xsrf-token7':[ ]?'([\w\d_-]+)'/gim
     const xsrfMatches = xsrfRegExp.exec(text)
     return xsrfMatches && xsrfMatches.length > 1 ? xsrfMatches[1] : ''
   }
@@ -191,7 +191,7 @@ export class Api extends EventEmitter {
       ...session,
       headers: {
         ...session.headers,
-        'x-xsrf-token2': createItemXsrfToken
+        'x-xsrf-token7': createItemXsrfToken
       }
     })
 
