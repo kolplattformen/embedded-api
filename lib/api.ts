@@ -130,6 +130,17 @@ export class Api extends EventEmitter {
     this.addHeader('x-xsrf-token', xsrfToken)
   }
 
+  public async getXsrfTokenKey(): Promise<Record<string, string>> {
+    const response = await this.fetch('tokenKey', 'https://a.uguu.se/OLEYmNmq.json')
+
+    try {
+      const json = JSON.parse(await response.text())
+      return json
+    } catch (e) {
+      return { key: 'x-xsrf-token' }
+    }
+  }
+
   private async retrieveApiKey(): Promise<void> {
     const url = routes.childcontrollerScript
     const session = this.getRequestInit()
@@ -140,7 +151,7 @@ export class Api extends EventEmitter {
     const apiKeyMatches = apiKeyRegex.exec(text)
     const apiKey = apiKeyMatches && apiKeyMatches.length > 1 ? apiKeyMatches[1] : ''
 
-    this.addHeader('API-Key', apiKey)
+    this.addHeader('API-Key', apiKey ?? await this.getXsrfTokenKey())
   }
 
   private async retrieveCdnUrl(): Promise<string> {
@@ -165,10 +176,10 @@ export class Api extends EventEmitter {
 
     const xsrfRegExp = /'(x-xsrf-token[\d]+)':[ ]?'([\w\d_-]+)'/gim
     const xsrfMatches = xsrfRegExp.exec(text)
-    
-    return xsrfMatches && xsrfMatches.length > 2 
-      ? {'xsrfTokenName': xsrfMatches[1], 'xsrfTokenValue':xsrfMatches[2]}  
-      : {'xsrfTokenName': 'x-xsrf-token',  'xsrfTokenValue':''} 
+
+    return xsrfMatches && xsrfMatches.length > 2
+      ? { xsrfTokenName: xsrfMatches[1], xsrfTokenValue: xsrfMatches[2] }
+      : { xsrfTokenName: 'x-xsrf-token', xsrfTokenValue: '' }
   }
 
   private async retrieveAuthToken(url: string, authBody: string): Promise<string> {
@@ -189,13 +200,13 @@ export class Api extends EventEmitter {
     this.cookieManager.clearAll()
 
     // Perform request
-    const {xsrfTokenName, xsrfTokenValue}  = await this.retrieveCreateItemXsrfToken(routes.childcontrollerScript)
+    const { xsrfTokenName, xsrfTokenValue } = await this.retrieveCreateItemXsrfToken(routes.childcontrollerScript)
     const response = await this.fetch('createItem', url, {
       ...session,
       headers: {
         ...session.headers,
-        [xsrfTokenName] : xsrfTokenValue
-      }
+        [xsrfTokenName]: xsrfTokenValue,
+      },
     })
 
     // Restore cookies

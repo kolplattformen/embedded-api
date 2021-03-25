@@ -184,5 +184,21 @@ describe('api', () => {
       })
       await api.login('121212121212')
     })
+
+    it('it fetches key for token', async () => {
+      response.text.mockResolvedValue('{ "key": "the-token" }');
+
+      const status = await api.getXsrfTokenKey()
+
+      expect(status.key).toEqual('the-token');
+    })
+
+    it('it returns default key for token', async () => {
+      response.text.mockResolvedValue('assad');
+
+      const status = await api.getXsrfTokenKey()
+
+      expect(status.key).toEqual('x-xsrf-token');
+    })
   })
 })
