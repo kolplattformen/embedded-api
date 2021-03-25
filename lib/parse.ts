@@ -159,5 +159,3 @@ export const notification = ({
   type,
 })
 export const notifications = (data: any): Notification[] => etjanst(data).map(notification)
-
-export const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

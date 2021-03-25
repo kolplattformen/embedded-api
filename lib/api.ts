@@ -24,7 +24,6 @@ import * as routes from './routes'
 import * as parse from './parse'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
-import { escapeRegExp } from './parse'
 
 interface TokenResponse {
   key: string;
@@ -181,7 +180,8 @@ export class Api extends EventEmitter {
 
     const { key } = await this.getXsrfTokenKey()
 
-    const xsrfRegExp = new RegExp(`(.+)-{${escapeRegExp(key)}}-(.+)`, 'igm')
+    const xsrfRegExp = new RegExp(`("${key}"):[ ]?"([\\w\\d_-]+)"`, 'gim')
+
     const xsrfMatches = text.match(xsrfRegExp)
 
     return xsrfMatches && xsrfMatches.length > 2
