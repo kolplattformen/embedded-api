@@ -181,7 +181,6 @@ export class Api extends EventEmitter {
     const { key } = await this.getXsrfTokenKey()
 
     const xsrfRegExp = new RegExp(`("${key}"):[ ]?"([\\w\\d_-]+)"`, 'gim')
-
     const xsrfMatches = text.match(xsrfRegExp)
 
     return xsrfMatches && xsrfMatches.length > 2
