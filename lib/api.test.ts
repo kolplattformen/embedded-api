@@ -200,5 +200,13 @@ describe('api', () => {
 
       expect(status.key).toEqual('x-xsrf-token');
     })
+
+    it('it returns default key when an error occurer', async () => {
+      response.text.mockRejectedValue('')
+
+      const status = await api.getXsrfTokenKey()
+
+      expect(status.key).toEqual('x-xsrf-token');
+    })
   })
 })
