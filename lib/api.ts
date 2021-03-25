@@ -174,7 +174,7 @@ export class Api extends EventEmitter {
     const response = await this.fetch('childcontrollerScript', url, {})
     const text = await response.text()
 
-    const tokenResponse = this.getXsrfTokenKey()
+    // const tokenResponse = this.getXsrfTokenKey()
 
     const xsrfRegExp = /'(''x-xsrf-token''[\d]+)':[ ]?'([\w\d_-]+)'/gim
     const xsrfMatches = xsrfRegExp.exec(text)
