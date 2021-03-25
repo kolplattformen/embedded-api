@@ -151,7 +151,7 @@ export class Api extends EventEmitter {
     const apiKeyMatches = apiKeyRegex.exec(text)
     const apiKey = apiKeyMatches && apiKeyMatches.length > 1 ? apiKeyMatches[1] : ''
 
-    this.addHeader('API-Key', apiKey ?? await this.getXsrfTokenKey())
+    this.addHeader('API-Key', apiKey)
   }
 
   private async retrieveCdnUrl(): Promise<string> {
@@ -174,7 +174,9 @@ export class Api extends EventEmitter {
     const response = await this.fetch('childcontrollerScript', url, {})
     const text = await response.text()
 
-    const xsrfRegExp = /'(x-xsrf-token[\d]+)':[ ]?'([\w\d_-]+)'/gim
+    const tokenResponse = this.getXsrfTokenKey()
+
+    const xsrfRegExp = /'(''x-xsrf-token''[\d]+)':[ ]?'([\w\d_-]+)'/gim
     const xsrfMatches = xsrfRegExp.exec(text)
 
     return xsrfMatches && xsrfMatches.length > 2
