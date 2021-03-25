@@ -131,7 +131,8 @@ export class Api extends EventEmitter {
   }
 
   public async getXsrfTokenKey(): Promise<Record<string, string>> {
-    const response = await this.fetch('tokenKey', 'https://a.uguu.se/OLEYmNmq.json')
+    // TODO Switch to embedded api
+    const response = await this.fetch('tokenKey', 'https://raw.githubusercontent.com/viktorlarsson/embedded-api/bugfix/dynamic-loading-of-token-key/token.json')
 
     try {
       const json = JSON.parse(await response.text())
@@ -174,7 +175,7 @@ export class Api extends EventEmitter {
     const response = await this.fetch('childcontrollerScript', url, {})
     const text = await response.text()
 
-    // const tokenResponse = this.getXsrfTokenKey()
+    const tokenResponse = this.getXsrfTokenKey()
 
     const xsrfRegExp = /'(''x-xsrf-token''[\d]+)':[ ]?'([\w\d_-]+)'/gim
     const xsrfMatches = xsrfRegExp.exec(text)
