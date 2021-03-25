@@ -24,7 +24,11 @@ import * as routes from './routes'
 import * as parse from './parse'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
+import { escapeRegExp } from './parse'
 
+interface TokenResponse {
+  key: string;
+}
 const fakeResponse = <T>(data: T): Promise<T> => new Promise((res) => (
   setTimeout(() => res(data), 200 + Math.random() * 800)
 ))
@@ -130,9 +134,9 @@ export class Api extends EventEmitter {
     this.addHeader('x-xsrf-token', xsrfToken)
   }
 
-  public async getXsrfTokenKey(): Promise<Record<string, string>> {
-    // TODO Switch to embedded api
-    const response = await this.fetch('tokenKey', 'https://raw.githubusercontent.com/viktorlarsson/embedded-api/bugfix/dynamic-loading-of-token-key/token.json')
+  public async getXsrfTokenKey(): Promise<TokenResponse> {
+    // TODO Switch to embedded api or another static hosting
+    const response = await this.fetch('tokenKey', 'https://rawcdn.githack.com/viktorlarsson/embedded-api/bugfix/dynamic-loading-of-token-key/token.json')
 
     try {
       const json = JSON.parse(await response.text())
@@ -175,14 +179,14 @@ export class Api extends EventEmitter {
     const response = await this.fetch('childcontrollerScript', url, {})
     const text = await response.text()
 
-    const tokenResponse = this.getXsrfTokenKey()
+    const { key } = await this.getXsrfTokenKey()
 
-    const xsrfRegExp = /'(''x-xsrf-token''[\d]+)':[ ]?'([\w\d_-]+)'/gim
-    const xsrfMatches = xsrfRegExp.exec(text)
+    const xsrfRegExp = new RegExp(`(.+)-{${escapeRegExp(key)}}-(.+)`, 'igm')
+    const xsrfMatches = text.match(xsrfRegExp)
 
     return xsrfMatches && xsrfMatches.length > 2
-      ? { xsrfTokenName: xsrfMatches[1], xsrfTokenValue: xsrfMatches[2] }
-      : { xsrfTokenName: 'x-xsrf-token', xsrfTokenValue: '' }
+      ? { xsrfTokenName: key, xsrfTokenValue: xsrfMatches[2] }
+      : { xsrfTokenName: key, xsrfTokenValue: '' }
   }
 
   private async retrieveAuthToken(url: string, authBody: string): Promise<string> {
