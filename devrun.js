@@ -1,27 +1,31 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable no-console */
+/* eslint-disable import/no-extraneous-dependencies */
+
 /**
  * A more elaborated test file for local development
  * - Support for proxy (i recommend Burp Suite https://portswigger.net/burp/communitydownload)
  * - Saves sessionCoookie to a file and tries to use it again
  */
-const { DateTime } = require('luxon')
 const nodeFetch = require('node-fetch')
 const { CookieJar } = require('tough-cookie')
 const fetchCookie = require('fetch-cookie/node-fetch')
+// eslint-disable-next-line import/no-unresolved
 const { writeFile, readFile } = require('fs/promises')
 const path = require('path')
 const fs = require('fs')
-var agentWrapper = require('./agentFetchWrapper')
-var HttpProxyAgent = require('https-proxy-agent')
+const HttpProxyAgent = require('https-proxy-agent')
+const agentWrapper = require('./agentFetchWrapper')
 const init = require('./dist').default
 
 const [, , personalNumber] = process.argv
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 const cookieJar = new CookieJar()
 let bankIdUsed = false
 
 async function run() {
-  var agent = new HttpProxyAgent('http://localhost:8080');
-  var agentEnabledFetch = agentWrapper(nodeFetch, agent)
+  const agent = new HttpProxyAgent('http://localhost:8080')
+  const agentEnabledFetch = agentWrapper(nodeFetch, agent)
 
   const fetch = fetchCookie(agentEnabledFetch, cookieJar)
 
@@ -32,17 +36,16 @@ async function run() {
       console.log('Logged in')
 
       if (bankIdUsed) {
-        let cookies = await cookieJar.getCookies("https://etjanst.stockholm.se")
-        console.log('cookies =>', cookies)
-        let sessionCookie = cookies.find(c => c.key === 'SMSESSION')
-        console.log('SessionCookie =>')
-        console.log(sessionCookie.value)
+        const cookies = await cookieJar.getCookies('https://etjanst.stockholm.se')
+        const sessionCookie = cookies.find((c) => c.key === 'SMSESSION')
+        ensureDirectoryExistence('./record')
         await writeFile('./record/latestSessionCookie.txt', JSON.stringify(sessionCookie))
+        console.log('Session cookie saved to file ./record/latesSessionCookie.txt')
       }
       console.log('user')
       const user = await api.getUser()
       console.log(user)
-/*
+      /*
       console.log('children')
       const children = await api.getChildren()
       console.log(children)
@@ -62,18 +65,18 @@ async function run() {
       console.log('news')
       const news = await api.getNews(children[0])
 */
-      /*console.log('news details')
+      /* console.log('news details')
       const newsItems = await Promise.all(
         news.map((newsItem) =>
           api.getNewsDetails(children[0], newsItem)
             .catch((err) => { console.error(newsItem.id, err) })
         )
       )
-      console.log(newsItems)*/
+      console.log(newsItems) */
 
-      /*console.log('menu')
+      /* console.log('menu')
       const menu = await api.getMenu(children[0])
-      console.log(menu)*/
+      console.log(menu) */
 
       // console.log('notifications')
       // const notifications = await api.getNotifications(children[0])
@@ -89,7 +92,6 @@ async function run() {
 
     // Eventhandlers above must be setup before calling login
     bankIdUsed = await Login(api)
-
   } catch (err) {
     console.error(err)
   }
@@ -99,8 +101,9 @@ async function Login(api) {
   let useBankId = true
 
   try {
-    let rawContent = await readFile('./record/latestSessionCookie.txt')
-    let sessionCookie = JSON.parse(rawContent)
+    console.log('Attempt to use saved session cookie to login')
+    const rawContent = await readFile('./record/latestSessionCookie.txt')
+    const sessionCookie = JSON.parse(rawContent)
 
     await api.setSessionCookie(`${sessionCookie.key}=${sessionCookie.value}`)
     useBankId = false
@@ -110,7 +113,7 @@ async function Login(api) {
     console.error(error)
   }
 
-  if(useBankId) {
+  if (useBankId) {
     console.log('*** BankId login - open BankId app ***')
     if (!personalNumber) {
       console.error('You must pass in a valid personal number, eg `node run 197001011111`')
@@ -122,7 +125,7 @@ async function Login(api) {
     status.on('ERROR', () => console.error('ERROR'))
     status.on('OK', () => console.log('OK'))
     status.on('CANCELLED', () => {
-      console.log("User cancelled login")
+      console.log('User cancelled login')
       process.exit(0)
     })
   }
@@ -130,14 +133,13 @@ async function Login(api) {
 }
 
 function ensureDirectoryExistence(filePath) {
-  var dirname = path.dirname(filePath);
+  const dirname = path.dirname(filePath)
   if (fs.existsSync(dirname)) {
-    return true;
+    return
   }
-  ensureDirectoryExistence(dirname);
-  fs.mkdirSync(dirname);
+  ensureDirectoryExistence(dirname)
+  fs.mkdirSync(dirname)
 }
-
 
 const record = async (info, data) => {
   const name = info.error ? `${info.name}_error` : info.name
@@ -157,21 +159,23 @@ const record = async (info, data) => {
       case 'text':
         content.text = data
         break
-      case 'blob':
+      case 'blob': {
         const buffer = await data.arrayBuffer()
         content.blob = Buffer.from(buffer).toString('base64')
         break
+      }
+      default:
+        throw new Error('Unknown data type')
     }
   } else if (info.error) {
-    const {message, stack} = info.error
+    const { message, stack } = info.error
     content.error = {
       message,
-      stack
+      stack,
     }
   }
   await writeFile(filename, JSON.stringify(content, null, 2))
 }
-
 
 // Hack to keep it running while wating for await
 const timer = setTimeout(() => {}, 999999)
@@ -185,4 +189,3 @@ run()
     clearTimeout(timer)
     console.error(err)
   })
-
