@@ -36,8 +36,7 @@ async function run() {
       console.log('Logged in')
 
       if (bankIdUsed) {
-        const cookies = await cookieJar.getCookies('https://etjanst.stockholm.se')
-        const sessionCookie = cookies.find((c) => c.key === 'SMSESSION')
+        const sessionCookie = getSessionCookieFromCookieJar()
         ensureDirectoryExistence('./record')
         await writeFile('./record/latestSessionCookie.txt', JSON.stringify(sessionCookie))
         console.log('Session cookie saved to file ./record/latesSessionCookie.txt')
@@ -106,6 +105,7 @@ async function Login(api) {
     const sessionCookie = JSON.parse(rawContent)
 
     await api.setSessionCookie(`${sessionCookie.key}=${sessionCookie.value}`)
+
     useBankId = false
     console.log('Login with old cookie succeeded')
   } catch (error) {
@@ -139,6 +139,12 @@ function ensureDirectoryExistence(filePath) {
   }
   ensureDirectoryExistence(dirname)
   fs.mkdirSync(dirname)
+}
+
+function getSessionCookieFromCookieJar() {
+  const cookies = cookieJar.getCookiesSync('https://etjanst.stockholm.se')
+  const sessionCookie = cookies.find((c) => c.key === 'SMSESSION')
+  return sessionCookie
 }
 
 const record = async (info, data) => {

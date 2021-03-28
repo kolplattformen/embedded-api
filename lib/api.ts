@@ -129,6 +129,11 @@ export class Api extends EventEmitter {
       redirect: 'manual', // Important! Turn off redirect following. We can get into a redirect loop without this.
     })
 
+    const user = await this.getUser()
+    if (!user.isAuthenticated) {
+      throw new Error('Session cookie is expired')
+    }
+
     await this.retrieveXsrfToken()
     await this.retrieveApiKey()
 
