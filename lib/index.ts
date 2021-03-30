@@ -14,10 +14,10 @@ export { LoginStatusChecker } from './loginStatus'
 
 const init = (
   fetch: Fetch,
-  cookieManagerImpl: RNCookieManager|ToughCookieJar,
-  options?: FetcherOptions,
+  cookieManagerImpl: RNCookieManager | ToughCookieJar,
+  options?: FetcherOptions
 ): Api => {
-  const cookieManager = ((cookieManagerImpl as RNCookieManager).get)
+  const cookieManager = (cookieManagerImpl as RNCookieManager).get
     ? wrapReactNativeCookieManager(cookieManagerImpl as RNCookieManager)
     : wrapToughCookie(cookieManagerImpl as ToughCookieJar)
   return new Api(fetch, cookieManager, options)
