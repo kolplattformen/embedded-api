@@ -18,12 +18,7 @@ export const menuList = (data: any): MenuItem[] => {
   )
 
   if (!currentWeek) {
-    return [
-      {
-        title: 'Måndag - Vecka ?',
-        description: 'Hittade ingen meny',
-      },
-    ]
+    return []
   }
 
   const menuItemsFS = [
