@@ -181,3 +181,14 @@ export interface User {
   email?: string | null
   notificationId?: string
 }
+
+export interface S24Child {
+  schoolGuid: string
+  unitGuid: string
+  schoolID: string
+  timetableID: string
+  personGuid: string
+  firstName: string
+  lastName: string
+}
+

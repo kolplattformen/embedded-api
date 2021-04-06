@@ -62,3 +62,10 @@ export const childcontrollerScript = `https://etjanst.stockholm.se/vardnadshavar
 
 export const createItemConfig =
   'https://raw.githubusercontent.com/kolplattformen/embedded-api/main/config.json'
+
+// Skola24
+export const ssoRequestUrl = (targetSystem: string) =>
+ `https://fnsservicesso1.stockholm.se/sso-ng/saml-2.0/authenticate?customer=https://login001.stockholm.se&targetsystem=${targetSystem}`  
+    
+export const ssoResponseUrl = 'https://login001.stockholm.se/affwebservices/public/saml2sso'
+export const samlResponseUrl = 'https://fnsservicesso1.stockholm.se/sso-ng/saml-2.0/response'

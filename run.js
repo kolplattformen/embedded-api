@@ -135,6 +135,9 @@ async function run() {
       // const notifications = await api.getNotifications(children[0])
       // console.log(notifications)
 
+      //const s24children = await api.getS24Children();
+      //console.log(s24children)
+
       await api.logout()
     })
 

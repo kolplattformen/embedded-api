@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { EventEmitter } from 'events'
 import { decode } from 'he'
 import * as html from 'node-html-parser'
+import { URLSearchParams } from 'url'
 import { checkStatus, LoginStatusChecker } from './loginStatus'
 import {
   AuthTicket,
@@ -16,6 +17,7 @@ import {
   RequestInit,
   ScheduleItem,
   User,
+  S24Child,
 } from './types'
 import * as routes from './routes'
 import * as parse from './parse'
@@ -409,4 +411,81 @@ export class Api extends EventEmitter {
     this.emit('logout')
     await this.clearSession()
   }
+
+  public async s24Sso(targetSystem: string): Promise<string> {
+
+    const ssoRequestUrl = routes.ssoRequestUrl(targetSystem)
+    const ssoRequestSession = this.getRequestInit({
+      redirect: 'follow', 
+    })
+    const ssoRequest = await this.fetch('s24ssoRequest', ssoRequestUrl, ssoRequestSession)
+    const ssoRequestResult = await ssoRequest.text()
+    const samlRequest = /name="SAMLRequest" value="(?<saml>\S+)">/gm.exec(ssoRequestResult || '')?.groups?.saml
+
+    const requestParams = new URLSearchParams({ SAMLRequest: samlRequest }).toString()
+    const {ssoResponseUrl} = routes
+
+    const ssoResponseSession = this.getRequestInit({
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      redirect: 'follow', 
+      method: 'POST',
+      body: requestParams,
+    })
+
+    const ssoResponse = await this.fetch('S24ssoResponse',  ssoResponseUrl, ssoResponseSession)
+    const ssoResponseResult = await ssoResponse.text()
+    const samlResponse = /name="SAMLResponse" value="(?<saml>\S+)">/gm.exec(ssoResponseResult)?.groups?.saml
+
+    const responseParams = new URLSearchParams({ SAMLResponse: samlResponse }).toString()
+    const responseUrl = routes.samlResponseUrl
+    const responseSession = this.getRequestInit({
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      redirect: 'follow', 
+      method: 'POST',
+      body: responseParams,
+    })
+    const result = await this.fetch('S24samlResponse', responseUrl, responseSession)
+
+    return result.text()
+
+  }
+
+  public async getS24Children(): Promise<S24Child[]>{
+    await this.s24Sso('TimetableViewer')
+    const body = { getPersonalTimetablesRequest: {
+      hostName: 'fns.stockholm.se'
+    }}
+    const session = this.getRequestInit({
+      headers: {
+        accept: 'application/json, text/javascript, */*; q=0.01',
+        referer: 'https://fns.stockholm.se/ng/timetable/timetable-viewer/fns.stockholm.se/',
+      'accept-language': 'en-US,en;q=0.9,sv;q=0.8',
+      'cache-control': 'no-cache',
+      'content-type': 'application/json',
+      pragma: 'no-cache',
+      host: 'fns.stockholm.se',
+      'x-scope': '8a22163c-8662-4535-9050-bc5e1923df48',
+      },  
+      
+  //    referrerPolicy: 'strict-origin-when-cross-origin',
+      body: JSON.stringify(body),
+      method: 'POST',
+     // mode: 'cors'
+    })
+
+    const url = 'https://fns.stockholm.se/ng/api/services/skola24/get/personal/timetables'
+    const request = this.fetch('s24children', url, session)
+    const { data : {getPersonalTimetablesResponse:  {childrenTimetables  } } } = await (await request).json()
+
+    return  childrenTimetables
+
+  }
+
+ 
+
+
 }
