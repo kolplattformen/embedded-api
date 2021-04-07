@@ -482,6 +482,8 @@ export class Api extends EventEmitter {
   }
 
   public async getSkola24Children(): Promise<Skola24Child[]>{
+    if (this.isFake) return fakeResponse(fake.skola24Children())
+
     await this.ssoAuthorize('TimetableViewer')
     const body = { getPersonalTimetablesRequest: {
       hostName: 'fns.stockholm.se'
@@ -514,6 +516,8 @@ export class Api extends EventEmitter {
   }
 
   public async getTimetable(child: Skola24Child, week: number, year: number): Promise<any> {
+    if (this.isFake) return fakeResponse(fake.timetable(child))
+    
     const url = routes.timetable
     const renderKey = await this.getRenderKey()
     const params = {
