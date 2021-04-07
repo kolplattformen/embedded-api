@@ -404,6 +404,59 @@ export class Api extends EventEmitter {
     return parse.notifications(data)
   }
 
+  private async readSAMLRequest(targetSystem: string): Promise<string> {
+    const url = routes.ssoRequestUrl(targetSystem)
+    const session = this.getRequestInit({
+      redirect: 'follow', 
+    })
+    const response = await this.fetch('samlRequest', url, session)
+    const text = await response.text()
+    const samlRequest = /name="SAMLRequest" value="(?<saml>\S+)">/gm.exec(text || '')?.groups?.saml
+    if (!samlRequest) {
+      throw new Error('Could not parse SAML Request')
+    } else {
+      return samlRequest
+    }
+  }
+
+  private async submitSAMLRequest(samlRequest: string): Promise<string> {
+    const body = new URLSearchParams({ SAMLRequest: samlRequest }).toString()
+    const url = routes.ssoResponseUrl
+    const session = this.getRequestInit({
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      redirect: 'follow', 
+      method: 'POST',
+      body,
+    })
+    const response = await this.fetch('samlResponse',  url, session)
+    const text = await response.text()
+    const samlResponse = /name="SAMLResponse" value="(?<saml>\S+)">/gm.exec(text)?.groups?.saml
+    if (!samlResponse) {
+      throw new Error('Could not parse SAML Response')
+    } else {
+      return samlResponse
+    }
+  }
+
+  private async ssoAuthorize(targetSystem: string): Promise<string> {
+    const samlRequest = await this.readSAMLRequest(targetSystem)
+    const samlResponse = await this.submitSAMLRequest(samlRequest)
+    
+    const body = new URLSearchParams({ SAMLResponse: samlResponse }).toString()
+    const url = routes.samlResponseUrl
+    const session = this.getRequestInit({
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      redirect: 'follow', 
+      method: 'POST',
+      body,
+    })
+    const response = await this.fetch('samlAuthorize', url, session)
+    const text = await response.text()
+    return text
+  }
+
   public async logout() {
     this.isFake = false
     this.personalNumber = undefined
@@ -412,50 +465,8 @@ export class Api extends EventEmitter {
     await this.clearSession()
   }
 
-  public async s24Sso(targetSystem: string): Promise<string> {
-
-    const ssoRequestUrl = routes.ssoRequestUrl(targetSystem)
-    const ssoRequestSession = this.getRequestInit({
-      redirect: 'follow', 
-    })
-    const ssoRequest = await this.fetch('s24ssoRequest', ssoRequestUrl, ssoRequestSession)
-    const ssoRequestResult = await ssoRequest.text()
-    const samlRequest = /name="SAMLRequest" value="(?<saml>\S+)">/gm.exec(ssoRequestResult || '')?.groups?.saml
-
-    const requestParams = new URLSearchParams({ SAMLRequest: samlRequest }).toString()
-    const {ssoResponseUrl} = routes
-
-    const ssoResponseSession = this.getRequestInit({
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      redirect: 'follow', 
-      method: 'POST',
-      body: requestParams,
-    })
-
-    const ssoResponse = await this.fetch('S24ssoResponse',  ssoResponseUrl, ssoResponseSession)
-    const ssoResponseResult = await ssoResponse.text()
-    const samlResponse = /name="SAMLResponse" value="(?<saml>\S+)">/gm.exec(ssoResponseResult)?.groups?.saml
-
-    const responseParams = new URLSearchParams({ SAMLResponse: samlResponse }).toString()
-    const responseUrl = routes.samlResponseUrl
-    const responseSession = this.getRequestInit({
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      redirect: 'follow', 
-      method: 'POST',
-      body: responseParams,
-    })
-    const result = await this.fetch('S24samlResponse', responseUrl, responseSession)
-
-    return result.text()
-
-  }
-
   public async getS24Children(): Promise<S24Child[]>{
-    await this.s24Sso('TimetableViewer')
+    await this.ssoAuthorize('TimetableViewer')
     const body = { getPersonalTimetablesRequest: {
       hostName: 'fns.stockholm.se'
     }}
@@ -484,8 +495,4 @@ export class Api extends EventEmitter {
     return  childrenTimetables
 
   }
-
- 
-
-
 }

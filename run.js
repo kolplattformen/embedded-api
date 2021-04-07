@@ -118,25 +118,25 @@ async function run() {
       console.log('news')
       const news = await api.getNews(children[0])
 */
-      /*console.log('news details')
+      /* console.log('news details')
       const newsItems = await Promise.all(
         news.map((newsItem) =>
           api.getNewsDetails(children[0], newsItem)
             .catch((err) => { console.error(newsItem.id, err) })
         )
       )
-      console.log(newsItems)*/
+      console.log(newsItems) */
 
-      /*console.log('menu')
+      /* console.log('menu')
       const menu = await api.getMenu(children[0])
-      console.log(menu)*/
+      console.log(menu) */
 
       // console.log('notifications')
       // const notifications = await api.getNotifications(children[0])
       // console.log(notifications)
 
-      //const s24children = await api.getS24Children();
-      //console.log(s24children)
+      const s24children = await api.getS24Children();
+      console.log(s24children)
 
       await api.logout()
     })
