@@ -136,12 +136,12 @@ async function run() {
       // const notifications = await api.getNotifications(children[0])
       // console.log(notifications)
 
-      // const s24children = await api.getS24Children();
-      // console.log(s24children)
+      const skola24children = await api.getSkola24Children()
+      console.log(skola24children)
 
-      console.log('timetables')
-      const timetables = await api.getTimetables(15, 2021)
-      console.log(inspect(timetables, false, 1000, true))
+      console.log('timetable')
+      const timetable = await api.getTimetable(skola24children[0], 15, 2021)
+      console.log(inspect(timetable, false, 1000, true))
 
       await api.logout()
     })

@@ -7,7 +7,6 @@ import { checkStatus, LoginStatusChecker } from './loginStatus'
 import {
   AuthTicket,
   CalendarItem,
-  Child,
   Classmate,
   CookieManager,
   Fetch,
@@ -17,10 +16,12 @@ import {
   RequestInit,
   ScheduleItem,
   User,
-  S24Child,
+  Skola24Child,
+  EtjanstChild,
+  SSOSystem,
 } from './types'
 import * as routes from './routes'
-import * as parse from './parse'
+import * as parse from './parse/index'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
 
@@ -40,6 +41,10 @@ const s24Init = {
   },
 }
 
+interface SSOSystems {
+  [name: string]: boolean | undefined
+}
+
 export class Api extends EventEmitter {
   private fetch: Fetcher
 
@@ -54,6 +59,8 @@ export class Api extends EventEmitter {
   public isFake: boolean = false
 
   public childControllerUrl?: string
+
+  private authorizedSystems: SSOSystems = {}
 
   constructor(
     fetch: Fetch,
@@ -296,7 +303,7 @@ export class Api extends EventEmitter {
     return parse.user(data)
   }
 
-  public async getChildren(): Promise<Child[]> {
+  public async getChildren(): Promise<EtjanstChild[]> {
     if (this.isFake) return fakeResponse(fake.children())
 
     const cdnUrl = await this.retrieveCdnUrl()
@@ -324,7 +331,7 @@ export class Api extends EventEmitter {
     return parse.children(data)
   }
 
-  public async getCalendar(child: Child): Promise<CalendarItem[]> {
+  public async getCalendar(child: EtjanstChild): Promise<CalendarItem[]> {
     if (this.isFake) return fakeResponse(fake.calendar(child))
 
     const url = routes.calendar(child.id)
@@ -334,7 +341,7 @@ export class Api extends EventEmitter {
     return parse.calendar(data)
   }
 
-  public async getClassmates(child: Child): Promise<Classmate[]> {
+  public async getClassmates(child: EtjanstChild): Promise<Classmate[]> {
     if (this.isFake) return fakeResponse(fake.classmates(child))
 
     const url = routes.classmates(child.sdsId)
@@ -345,7 +352,7 @@ export class Api extends EventEmitter {
   }
 
   public async getSchedule(
-    child: Child,
+    child: EtjanstChild,
     from: DateTime,
     to: DateTime
   ): Promise<ScheduleItem[]> {
@@ -358,7 +365,7 @@ export class Api extends EventEmitter {
     return parse.schedule(data)
   }
 
-  public async getNews(child: Child): Promise<NewsItem[]> {
+  public async getNews(child: EtjanstChild): Promise<NewsItem[]> {
     if (this.isFake) return fakeResponse(fake.news(child))
 
     const url = routes.news(child.id)
@@ -368,7 +375,7 @@ export class Api extends EventEmitter {
     return parse.news(data)
   }
 
-  public async getNewsDetails(child: Child, item: NewsItem): Promise<any> {
+  public async getNewsDetails(child: EtjanstChild, item: NewsItem): Promise<any> {
     if (this.isFake) {
       return fakeResponse(fake.news(child).find((ni) => ni.id === item.id))
     }
@@ -379,7 +386,7 @@ export class Api extends EventEmitter {
     return parse.newsItemDetails(data)
   }
 
-  public async getMenu(child: Child): Promise<MenuItem[]> {
+  public async getMenu(child: EtjanstChild): Promise<MenuItem[]> {
     if (this.isFake) return fakeResponse(fake.menu(child))
 
     const menuService = await this.getMenuChoice(child)
@@ -398,7 +405,7 @@ export class Api extends EventEmitter {
     return parse.menuList(data)
   }
 
-  private async getMenuChoice(child: Child): Promise<string> {
+  private async getMenuChoice(child: EtjanstChild): Promise<string> {
     const url = routes.menuChoice(child.id)
     const session = this.getRequestInit()
     const response = await this.fetch('menu-choice', url, session)
@@ -407,7 +414,7 @@ export class Api extends EventEmitter {
     return etjanstResponse
   }
 
-  public async getNotifications(child: Child): Promise<Notification[]> {
+  public async getNotifications(child: EtjanstChild): Promise<Notification[]> {
     if (this.isFake) return fakeResponse(fake.notifications(child))
 
     const url = routes.notifications(child.sdsId)
@@ -451,7 +458,10 @@ export class Api extends EventEmitter {
     }
   }
 
-  private async ssoAuthorize(targetSystem: string): Promise<string> {
+  private async ssoAuthorize(targetSystem: SSOSystem): Promise<string> {
+    if (this.authorizedSystems[targetSystem]) {
+      return ''
+    }
     const samlRequest = await this.readSAMLRequest(targetSystem)
     const samlResponse = await this.submitSAMLRequest(samlRequest)
     
@@ -467,18 +477,11 @@ export class Api extends EventEmitter {
     })
     const response = await this.fetch('samlAuthorize', url, session)
     const text = await response.text()
+    this.authorizedSystems[targetSystem] = true
     return text
   }
 
-  public async logout() {
-    this.isFake = false
-    this.personalNumber = undefined
-    this.isLoggedIn = false
-    this.emit('logout')
-    await this.clearSession()
-  }
-
-  public async getS24Children(): Promise<S24Child[]>{
+  public async getSkola24Children(): Promise<Skola24Child[]>{
     await this.ssoAuthorize('TimetableViewer')
     const body = { getPersonalTimetablesRequest: {
       hostName: 'fns.stockholm.se'
@@ -499,7 +502,7 @@ export class Api extends EventEmitter {
       }
     } = await response.json()
 
-    return childrenTimetables as S24Child[]
+    return childrenTimetables as Skola24Child[]
   }
 
   private async getRenderKey(): Promise<string> {
@@ -510,39 +513,46 @@ export class Api extends EventEmitter {
     return key as string
   }
 
-  public async getTimetables(week: number, year: number): Promise<any> {
-    const children = await this.getS24Children()
+  public async getTimetable(child: Skola24Child, week: number, year: number): Promise<any> {
     const url = routes.timetable
+    const renderKey = await this.getRenderKey()
+    const params = {
+      blackAndWhite: false,
+      customerKey: '',
+      endDate: null,
+      height: 1063,
+      host: 'fns.stockholm.se',
+      periodText: '',
+      privateFreeTextMode: null,
+      privateSelectionMode: true,
+      renderKey,
+      scheduleDay: 0,
+      selection: child.personGuid,
+      selectionType: 5,
+      showHeader: false,
+      startDate: null,
+      unitGuid: child.unitGuid,
+      week,
+      width: 1227,
+      year,
+    }
     const session = this.getRequestInit({
       ...s24Init,
       method: 'POST',
+      body: JSON.stringify(params),
     })
-    const renderKey = await this.getRenderKey()
-    const responses = await Promise.all(children.map(async (child) => {
-      const params = {
-        blackAndWhite: false,
-        customerKey: '',
-        endDate: null,
-        height: 1063,
-        host: 'fns.stockholm.se',
-        periodText: '',
-        privateFreeTextMode: null,
-        privateSelectionMode: true,
-        renderKey,
-        scheduleDay: 0,
-        selection: child.personGuid,
-        selectionType: 5,
-        showHeader: false,
-        startDate: null,
-        unitGuid: child.unitGuid,
-        week,
-        width: 1227,
-        year,
-      }
-      const body = JSON.stringify(params)
-      const response = await this.fetch(`timetable_${child.personGuid}`, url, { ...session, body })
-      return response.json()
-    }))
-    return responses
+    const response = await this.fetch(`timetable_${child.personGuid}_${year}_${week}`, url, session)
+    const json = await response.json()
+
+    return parse.timetable(json, year, week)
+  }
+
+  public async logout() {
+    this.isFake = false
+    this.personalNumber = undefined
+    this.isLoggedIn = false
+    this.authorizedSystems = {}
+    this.emit('logout')
+    await this.clearSession()
   }
 }
