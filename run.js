@@ -22,6 +22,7 @@ const fetchCookie = require('fetch-cookie/node-fetch')
 const { writeFile } = require('fs/promises')
 const path = require('path')
 const fs = require('fs')
+const { inspect } = require('util')
 
 const init = require('./dist').default
 
@@ -135,8 +136,12 @@ async function run() {
       // const notifications = await api.getNotifications(children[0])
       // console.log(notifications)
 
-      const s24children = await api.getS24Children();
-      console.log(s24children)
+      // const s24children = await api.getS24Children();
+      // console.log(s24children)
+
+      console.log('timetables')
+      const timetables = await api.getTimetables(15, 2021)
+      console.log(inspect(timetables, false, 1000, true))
 
       await api.logout()
     })

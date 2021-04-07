@@ -27,6 +27,19 @@ import * as fake from './fakeData'
 const fakeResponse = <T>(data: T): Promise<T> =>
   new Promise((res) => setTimeout(() => res(data), 200 + Math.random() * 800))
 
+const s24Init = {
+  headers: {
+    accept: 'application/json, text/javascript, */*; q=0.01',
+    referer: 'https://fns.stockholm.se/ng/timetable/timetable-viewer/fns.stockholm.se/',
+    'accept-language': 'en-US,en;q=0.9,sv;q=0.8',
+    'cache-control': 'no-cache',
+    'content-type': 'application/json',
+    pragma: 'no-cache',
+    host: 'fns.stockholm.se',
+    'x-scope': '8a22163c-8662-4535-9050-bc5e1923df48',
+  },
+}
+
 export class Api extends EventEmitter {
   private fetch: Fetcher
 
@@ -471,28 +484,65 @@ export class Api extends EventEmitter {
       hostName: 'fns.stockholm.se'
     }}
     const session = this.getRequestInit({
-      headers: {
-        accept: 'application/json, text/javascript, */*; q=0.01',
-        referer: 'https://fns.stockholm.se/ng/timetable/timetable-viewer/fns.stockholm.se/',
-      'accept-language': 'en-US,en;q=0.9,sv;q=0.8',
-      'cache-control': 'no-cache',
-      'content-type': 'application/json',
-      pragma: 'no-cache',
-      host: 'fns.stockholm.se',
-      'x-scope': '8a22163c-8662-4535-9050-bc5e1923df48',
-      },  
-      
-  //    referrerPolicy: 'strict-origin-when-cross-origin',
+      ...s24Init,
       body: JSON.stringify(body),
       method: 'POST',
-     // mode: 'cors'
     })
 
-    const url = 'https://fns.stockholm.se/ng/api/services/skola24/get/personal/timetables'
-    const request = this.fetch('s24children', url, session)
-    const { data : {getPersonalTimetablesResponse:  {childrenTimetables  } } } = await (await request).json()
+    const url = routes.timetables
+    const response = await this.fetch('s24children', url, session)
+    const {
+      data: {
+        getPersonalTimetablesResponse: {
+          childrenTimetables
+        }
+      }
+    } = await response.json()
 
-    return  childrenTimetables
+    return childrenTimetables as S24Child[]
+  }
 
+  private async getRenderKey(): Promise<string> {
+    const url = routes.renderKey
+    const session = this.getRequestInit(s24Init)
+    const response = await this.fetch('renderKey', url, session)
+    const { data: { key } } = await response.json()
+    return key as string
+  }
+
+  public async getTimetables(week: number, year: number): Promise<any> {
+    const children = await this.getS24Children()
+    const url = routes.timetable
+    const session = this.getRequestInit({
+      ...s24Init,
+      method: 'POST',
+    })
+    const renderKey = await this.getRenderKey()
+    const responses = await Promise.all(children.map(async (child) => {
+      const params = {
+        blackAndWhite: false,
+        customerKey: '',
+        endDate: null,
+        height: 1063,
+        host: 'fns.stockholm.se',
+        periodText: '',
+        privateFreeTextMode: null,
+        privateSelectionMode: true,
+        renderKey,
+        scheduleDay: 0,
+        selection: child.personGuid,
+        selectionType: 5,
+        showHeader: false,
+        startDate: null,
+        unitGuid: child.unitGuid,
+        week,
+        width: 1227,
+        year,
+      }
+      const body = JSON.stringify(params)
+      const response = await this.fetch(`timetable_${child.personGuid}`, url, { ...session, body })
+      return response.json()
+    }))
+    return responses
   }
 }
