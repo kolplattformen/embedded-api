@@ -87,7 +87,7 @@ Nu är det dags för vattenballongkrig  12/2-21 till om med tisdag 16/2-21.
 
 Alla knep är tillåtna. 
 
-Det blir kul.
+**Det blir kul.**
 
 Kolla in Reddit: [https://reddit.com/water-balloons/where-to-buy/](https://reddit.com/water-balloons/where-to-buy/)
 
@@ -111,7 +111,7 @@ Vi fortsätter också att:
 
 Ta hand om er!
 
-Ha kul tillsammans, på avstånd.
+**Ha kul tillsammans, på avstånd.**
 
 Stort tack för ert samarbete! ${nbsp}
 
@@ -119,9 +119,9 @@ Vänligen,
 
 rektorfnamn rektorenamn, rektor${nbsp} 
 
-Vid frågor, kontakta oss gärna:
+**Vid frågor, kontakta oss gärna:**
 
-Skolledning
+**Skolledning**
 
 rektorfnamn rektorenamn rektor: [rektorfnamn.rektorenamn@edu.stockholm.se](mailto:rektorfnamn.rektorenamn@edu.stockholm.se)
 
@@ -129,7 +129,7 @@ brektorfnamn brektorenamn, bitr. rektor: [brektorfnamn.u.brektorenamn@edu.stockh
 
 b2rektorfnamn b2rektorenamn bitr. rektor: [b2rektorfnamn.b2rektorenamn@edu.stockholm.se](mailto:b2rektorfnamn.b2rektorenamn@edu.stockholm.se)
 
-Skolhälsan
+**Skolhälsan**
 
 b2rektorfnamn skolskstenamn skolsköterska: [b2rektorfnamn.skolskstenamn@edu.stockholm.se](mailto:b2rektorfnamn.skolskstenamn@edu.stockholm.se)
 

@@ -62,6 +62,8 @@ const converter = 'MarkdownExtra'
 const overides = {
   a: (node: Node) => `[${node.md}](${node.attrs.href})`,
   img: (node: Node) => `![${node.attrs.title}](${node.attrs.src})`,
+  i: (node: Node) => `*${node.md}*`,
+  b: (node: Node) => `**${node.md}**`,
 }
 
 export const toMarkdown = (html: string): string => {
