@@ -40,6 +40,15 @@ const deepClean = (node: HTMLElement): HTMLElement => {
   return cleaned
 }
 
+const rearrangeWhitespace = (html: string = ''): string => {
+  let content = html
+  trimNodes.forEach((trimNode) => {
+    content = content.replace(`<${trimNode}> `, ` <${trimNode}>`)
+    content = content.replace(` </${trimNode}>`, `</${trimNode}> `)
+  })
+  return content
+}
+
 export const clean = (html: string = ''): string =>
   deepClean(parse(decode(html))).outerHTML
 
@@ -56,7 +65,8 @@ const overides = {
 }
 
 export const toMarkdown = (html: string): string => {
-  const trimmed = clean(html)
+  const rearranged = rearrangeWhitespace(html)
+  const trimmed = clean(rearranged)
   const markdown = h2m(trimmed, { overides, converter })
   const decoded = htmlDecode(markdown)
   return decoded

@@ -117,7 +117,7 @@ describe('newsItem', () => {
           BannerImageGuid: '7a8142d9d9d54cf090e8457e4c629227',
           BannerImageListId: 'a88c22e8-7094-4a71-b4fd-8792c62a7b4a',
           Body:
-            '<div data-sp-rte=""><p><span><span><span>Kära vårdnadshavare!</span></span></span></p><p><span><span><span>I helgen är det avlusningsdagar! Ta tillfället i akt att luskamma ditt barn </span></span></span></p><p><span><span><span>Du finner all info du behöver på <a href="https&#58;//www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/" data-cke-saved-href="https&#58;//www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/" data-interception="on" title="https&#58;//www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/">1177 hemsida </a></span></span></span><span><span><span>​​​​​​​</span></span></span></p><p><span><span><span>Trevlig helg!</span></span></span></p><p><span><span><span>​​​​​​​</span></span></span></p></div>',
+            '<div data-sp-rte=""><p><span><span><span>Kära vårdnadshavare!</span></span></span></p><p><span><span><span>I helgen är det avlusningsdagar! Ta <strong>tillfället </strong>i akt att luskamma ditt barn </span></span></span></p><p><span><span><span>Du finner all info du behöver på <a href="https&#58;//www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/" data-cke-saved-href="https&#58;//www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/" data-interception="on" title="https&#58;//www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/">1177 hemsida </a></span></span></span><span><span><span>​​​​​​​</span></span></span></p><p><span><span><span>Trevlig helg!</span></span></span></p><p><span><span><span>​​​​​​​</span></span></span></p></div>',
           BodyNoHtml: null,
           AuthorDisplayName: 'Tieto Evry',
           altText: null,
@@ -170,5 +170,6 @@ describe('newsItem', () => {
     const expected =
       '[1177 hemsida](https://www.1177.se/sjukdomar--besvar/hud-har-och-naglar/harbotten-och-harsackar/huvudloss/)​​​​​​​'
     expect(item.body).toContain(expected)
+    expect(item.body).toContain(' **tillfället** ')
   })
 })
