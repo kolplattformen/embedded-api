@@ -99,25 +99,25 @@ Kolla in Reddit: [https://reddit.com/water-balloons/where-to-buy/](https://reddi
 
 [https://wnews.ycombinator.com/](https://wnews.ycombinator.com/)
 
-Vi fortsätter också att:
+Vi fortsätter också att: 
 
-- hålla avstånd.
+- hålla avstånd. 
 - ha flera digitala möten.
-- tvätta händerna.
-- undvika kollektivtrafik om det är möjligt.
+- tvätta händerna. 
+- undvika kollektivtrafik om det är möjligt. 
 
 - stanna hemma även när man bara känner sig lite sjuk.
 - vädra ofta
 
 Ta hand om er!
 
-**Ha kul tillsammans, på avstånd.**
+**Ha kul tillsammans, på avstånd.**  
 
-Stort tack för ert samarbete! ${nbsp}
+Stort tack för ert samarbete!  
 
 Vänligen, 
 
-rektorfnamn rektorenamn, rektor${nbsp} 
+rektorfnamn rektorenamn, rektor  
 
 **Vid frågor, kontakta oss gärna:**
 

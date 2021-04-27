@@ -199,7 +199,7 @@ describe('newsItem', () => {
           BannerImageGuid: '7a8142d9d9d54cf090e8457e4c629227',
           BannerImageListId: 'a88c22e8-7094-4a71-b4fd-8792c62a7b4a',
           Body:
-            '<i>italic</i> <b>bold</b> <em>emphasis </em> <strong>strong</strong>',
+            '<i>italic</i>  <b>bold</b>  <em>emphasis </em><br/><strong>strong</strong>',
           BodyNoHtml: null,
           AuthorDisplayName: 'Tieto Evry',
           altText: null,

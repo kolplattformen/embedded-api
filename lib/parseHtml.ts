@@ -41,10 +41,10 @@ const deepClean = (node: HTMLElement): HTMLElement => {
 }
 
 const rearrangeWhitespace = (html: string = ''): string => {
-  let content = html
+  let content = html.split('&#160;').join('&amp;nbsp;')
   trimNodes.forEach((trimNode) => {
-    content = content.replace(`<${trimNode}> `, ` <${trimNode}>`)
-    content = content.replace(` </${trimNode}>`, `</${trimNode}> `)
+    content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
+    content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
   })
   return content
 }
@@ -61,7 +61,7 @@ interface Node {
 const converter = 'MarkdownExtra'
 const overides = {
   a: (node: Node) => `[${node.md}](${node.attrs.href})`,
-  img: (node: Node) => `![${node.attrs.title}](${node.attrs.src})`,
+  img: (node: Node) => `![${node.attrs.title || ''}](${node.attrs.src})`,
   i: (node: Node) => `*${node.md}*`,
   b: (node: Node) => `**${node.md}**`,
 }
