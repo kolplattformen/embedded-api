@@ -40,6 +40,10 @@ const deepClean = (node: HTMLElement): HTMLElement => {
   return cleaned
 }
 
+const replaceWhitespace = (html: string = ''): string => (
+  html.replace(/&#160;/g, ' ').replace(/&nbsp;/g, ' ')
+)
+
 const rearrangeWhitespace = (html: string = ''): string => {
   let content = html.split('&#160;').join('&amp;nbsp;')
   trimNodes.forEach((trimNode) => {
@@ -67,7 +71,8 @@ const overides = {
 }
 
 export const toMarkdown = (html: string): string => {
-  const rearranged = rearrangeWhitespace(html)
+  const replaced = replaceWhitespace(html)
+  const rearranged = rearrangeWhitespace(replaced)
   const trimmed = clean(rearranged)
   const markdown = h2m(trimmed, { overides, converter })
   const decoded = htmlDecode(markdown)
