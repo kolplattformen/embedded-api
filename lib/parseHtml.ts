@@ -41,22 +41,18 @@ const deepClean = (node: HTMLElement): HTMLElement => {
 }
 
 const rearrangeWhitespace = (html: string = ''): string => {
-  let content = html
+  const content = html
   .replace(/<span[^>]*>/gm, '')
   .split('</span>').join('')
   .replace(/<div[^>]*>/gm, '')
   .split('</div>').join('')
   .split('&#160;').join('&amp;nbsp;')
-  
-  for(var i=0; i<5; i++){
-    trimNodes.forEach((trimNode) => {
-      content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
-      content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
-      content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
-      content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)
-    })
-  }
-  return content
+
+   return trimNodes.map((trimNode) => content
+        .split(`<${trimNode}> `).join(` <${trimNode}>`)
+        .split(` </${trimNode}>`).join(`</${trimNode}> `)
+        .split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
+        .split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)).join() || '' 
 }
 
 export const clean = (html: string = ''): string =>
@@ -83,8 +79,14 @@ const overides = {
 }
 
 export const toMarkdown = (html: string): string => {
-  const rearranged = rearrangeWhitespace(html)
-  const trimmed = clean(rearranged)
+
+  let cleanHtml = rearrangeWhitespace(html)
+
+  // TODO: Better recusrsion on this
+  for(let i=0; i<4; i += 1){
+    cleanHtml = rearrangeWhitespace(cleanHtml) 
+  }
+  const trimmed = clean(cleanHtml)
   const markdown = h2m(trimmed, { overides, converter })
   const decoded = htmlDecode(markdown)
   return decoded
