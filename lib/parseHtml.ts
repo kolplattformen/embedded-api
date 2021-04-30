@@ -48,7 +48,7 @@ const rearrangeWhitespace = (html: string = ''): string => {
   .split('</div>').join('')
   .split('&#160;').join('&amp;nbsp;')
   
-  //FIXME: Make a loop that doesn't break linting
+  // FIXME: Make a loop that doesn't break linting
   trimNodes.forEach((trimNode) => {
     content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
     content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
