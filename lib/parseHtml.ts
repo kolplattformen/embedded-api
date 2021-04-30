@@ -41,13 +41,21 @@ const deepClean = (node: HTMLElement): HTMLElement => {
 }
 
 const rearrangeWhitespace = (html: string = ''): string => {
-  let content = html.split('&#160;').join('&amp;nbsp;')
-  trimNodes.forEach((trimNode) => {
-    content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
-    content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
-    content = content.split(`<${trimNode}>&amp;nbsp;`).join(`&amp;nbsp;<${trimNode}>`)
-    content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}>&amp;nbsp;`)
-  })
+  let content = html
+  .replace(/<span[^>]*>/gm, '')
+  .split('</span>').join('')
+  .replace(/<div[^>]*>/gm, '')
+  .split('</div>').join('')
+  .split('&#160;').join('&amp;nbsp;')
+  
+  for(var i=0; i<5; i++){
+    trimNodes.forEach((trimNode) => {
+      content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
+      content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
+      content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
+      content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)
+    })
+  }
   return content
 }
 
@@ -66,6 +74,12 @@ const overides = {
   img: (node: Node) => `![${node.attrs.title || ''}](${node.attrs.src})`,
   i: (node: Node) => `*${node.md}*`,
   b: (node: Node) => `**${node.md}**`,
+  'h1': (node: Node) => `# ${node.md}\n`,
+  'h2': (node: Node) => `## ${node.md}\n`,
+  'h3': (node: Node) => `### ${node.md}\n`,
+  'h4': (node: Node) => `#### ${node.md}\n`,
+  'h5': (node: Node) => `##### ${node.md}\n`,
+  'h6': (node: Node) => `###### ${node.md}\n`,
 }
 
 export const toMarkdown = (html: string): string => {
