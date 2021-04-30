@@ -48,14 +48,33 @@ const rearrangeWhitespace = (html: string = ''): string => {
   .split('</div>').join('')
   .split('&#160;').join('&amp;nbsp;')
   
-  for(var i=0; i<5; i++){
-    trimNodes.forEach((trimNode) => {
-      content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
-      content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
-      content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
-      content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)
-    })
-  }
+  //FIXME: Make a loop that doesn't break linting
+  trimNodes.forEach((trimNode) => {
+    content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
+    content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
+    content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
+    content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)    
+  })
+    
+  trimNodes.forEach((trimNode) => {
+    content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
+    content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
+    content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
+    content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)    
+  })
+  trimNodes.forEach((trimNode) => {
+    content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
+    content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
+    content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
+    content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)    
+  })
+  trimNodes.forEach((trimNode) => {
+    content = content.split(`<${trimNode}> `).join(` <${trimNode}>`)
+    content = content.split(` </${trimNode}>`).join(`</${trimNode}> `)
+    content = content.split(`<${trimNode}>&amp;nbsp;`).join(` <${trimNode}>`)
+    content = content.split(`&amp;nbsp;</${trimNode}>`).join(`</${trimNode}> `)    
+  })
+
   return content
 }
 
