@@ -29,7 +29,7 @@ const initStockholm = (
   fetch: Fetch,
   cookieManagerImpl: RNCookieManager | ToughCookieJar,
   options?: FetcherOptions
-): IApi => {
+): Api => {
   // prettier-ignore
   const cookieManager = ((cookieManagerImpl as RNCookieManager).get)
     ? wrapReactNativeCookieManager(cookieManagerImpl as RNCookieManager)
