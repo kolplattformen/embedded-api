@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "base-64": "^1.0.0",
+    "buffer": "^6.0.3",
     "camelcase-keys": "^6.2.2",
     "change-case": "^4.1.2",
     "events": "^3.3.0",
