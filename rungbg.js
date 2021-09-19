@@ -1,13 +1,13 @@
 function requestLogger(httpModule) {
     var original = httpModule.request
     httpModule.request = function (options, callback) {
-      // console.log('-----------------------------------------------')
-      // console.log(
-      //   options.href || options.proto + '://' + options.host + options.path,
-      //   options.method
-      // )
-      // console.log(options.headers)
-      // console.log('-----------------------------------------------')
+      console.log('-----------------------------------------------')
+      console.log(
+        options.href || options.proto + '://' + options.host + options.path,
+        options.method
+      )
+      console.log(options.headers)
+      console.log('-----------------------------------------------')
       return original(options, callback)
     }
   }
