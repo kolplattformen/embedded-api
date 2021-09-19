@@ -8,7 +8,7 @@ import {
   wrapToughCookie,
 } from './cookies'
 import { ApiGbg as ApiHjarntorget } from './apiGbg'
-import { IApi } from './IApi'
+import { IApi } from './iapi'
 
 export { Api, FetcherOptions }
 export * from './types'
