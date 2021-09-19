@@ -8,7 +8,7 @@ import {
   wrapToughCookie,
 } from './cookies'
 import { ApiGbg as ApiHjarntorget } from './apiGbg'
-import { IApi } from './IApi'
+import { IApi } from './iapi'
 
 export { Api, FetcherOptions }
 export * from './types'
@@ -16,20 +16,11 @@ export { LoginStatusChecker } from './loginStatus'
 
 export type ApiTarget = 'Stockholm' | 'Gothenburg'
 
-export const initApi = (target: ApiTarget) => {
-  switch (target) {
-    case 'Stockholm':
-      return initStockholm
-    case 'Gothenburg':
-      return initGothenburg
-  }
-}
-
 const initStockholm = (
   fetch: Fetch,
   cookieManagerImpl: RNCookieManager | ToughCookieJar,
   options?: FetcherOptions
-): Api => {
+): IApi => {
   // prettier-ignore
   const cookieManager = ((cookieManagerImpl as RNCookieManager).get)
     ? wrapReactNativeCookieManager(cookieManagerImpl as RNCookieManager)
@@ -47,6 +38,16 @@ const initGothenburg = (
     ? wrapReactNativeCookieManager(cookieManagerImpl as RNCookieManager)
     : wrapToughCookie(cookieManagerImpl as ToughCookieJar)
   return new ApiHjarntorget(fetch, cookieManager, options)
+}
+
+export const initApi = (target: ApiTarget) => {
+  switch (target) {
+    case 'Gothenburg':
+      return initGothenburg
+    case 'Stockholm':
+    default:
+        return initStockholm
+  }
 }
 
 export default initStockholm
