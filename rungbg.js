@@ -1,13 +1,13 @@
 function requestLogger(httpModule) {
     var original = httpModule.request
     httpModule.request = function (options, callback) {
-      console.log('-----------------------------------------------')
-      console.log(
-        options.href || options.proto + '://' + options.host + options.path,
-        options.method
-      )
-      console.log(options.headers)
-      console.log('-----------------------------------------------')
+      // console.log('-----------------------------------------------')
+      // console.log(
+      //   options.href || options.proto + '://' + options.host + options.path,
+      //   options.method
+      // )
+      // console.log(options.headers)
+      // console.log('-----------------------------------------------')
       return original(options, callback)
     }
   }
@@ -89,10 +89,21 @@ function requestLogger(httpModule) {
       api.on('login', async () => {
         console.log("Loged in!")
         const children = await api.getChildren()
-        for (let i = 0; i < children.length; i++) {
-          const child = children[i];
-          console.log(child)
-        }
+        console.table(children)
+
+        //const news = await api.getNews()
+        //console.table(news.map(n => ({ id: n.id, author: n.author, published: n.published})))
+        //news.length && console.log(news[0])
+
+        const notifications = await api.getNotifications(children[2])
+        //const ns = notifications.map(n => ({id: n.id, sender: n.sender, type: n.type}))
+        //console.table(ns)
+        console.log("notifications count", notifications.length)
+        notifications.slice(0, 10).forEach(console.log)
+
+        // const schema = await api.getCalendar(children[1])
+        // console.table(schema)
+
       });
       const res = await api.login(personalNumber)
       console.log(res)

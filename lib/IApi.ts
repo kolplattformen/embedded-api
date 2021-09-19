@@ -1,4 +1,5 @@
 import { Language } from '@skolplattformen/curriculum/dist/translations';
+import { DateTime } from 'luxon';
 import { LoginStatusChecker } from './loginStatus';
 import {
   CalendarItem,
@@ -8,7 +9,9 @@ import {
   Notification,
   User,
   Skola24Child,
-  EtjanstChild
+  EtjanstChild,
+  TimetableEntry,
+  ScheduleItem
 } from './types';
 
 export interface IApi {
@@ -23,7 +26,8 @@ export interface IApi {
   getNewsDetails(child: EtjanstChild, item: NewsItem): Promise<any>;
   getMenu(child: EtjanstChild): Promise<MenuItem[]>;
   getNotifications(child: EtjanstChild): Promise<Notification[]>;
+  getSchedule(child: EtjanstChild, from: DateTime, to: DateTime): Promise<ScheduleItem[]>
   getSkola24Children(): Promise<Skola24Child[]>;
-  getTimetable(child: Skola24Child, week: number, year: number, lang: Language): Promise<any>;
+  getTimetable(child: Skola24Child, week: number, year: number, lang: Language): Promise<TimetableEntry[]>;
   logout(): Promise<void>;
 }

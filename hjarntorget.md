@@ -1,6 +1,8 @@
 # Hjärntorget
 The below headings describe some endpoints that can be used to fetch information from Hjärntorget. In order to query and post to any of the endpoints described the user must already have a session with Hjärntorget. There is some documentation around accessible endpoints that return json at: https://hjarntorget.goteborg.se/api/
 
+Note that the below is only really valid for a sample size of 1 school + 1 preschool. Other schools & preschools might have entierly different setups in how they send messages & updates to parents.
+
 ## Fetching the logged in user
 Making a get request to `https://hjarntorget.goteborg.se/api/core/current-user` when logged in gets information about the logged in user.
 
@@ -56,10 +58,8 @@ Some notes on the responses, the `id` field for children seem to end with `_gote
 ### Parsing children info from portlet response
 Ab alternate approach would be to get the school children for a guardian by sending a GET request to `https://hjarntorget.goteborg.se/portletMyChildren.do`. Then parse the response, but the json API seems a log cleaner!
 
-
-
 ## PIM messages
-So called PIM messages (usually from teachers to guardians) can be fetched with a GET request to `https://hjarntorget.goteborg.se/api/wall/events?language=en&limit=50`. The `language` parameter changes the title of some messages, but seems to be mostly irrelevant otherwise. 
+So called PIM messages (usually from teachers to guardians) can be fetched with a GET request to `https://hjarntorget.goteborg.se/api/wall/events?language=en&limit=50`. The `language` parameter changes the title of some messages, but seems to be mostly irrelevant otherwise. Notably is that most messages seem to be directed directly to parents. As such it is a bit hard to sort them to only the relevant children. The current implementation in apiGbg.ts tries to sort out which child a message "belongs to" by checking if the creator of the message is a member of any "event" that the child is also a member of. However, some messages seems to be sent by system users (see last message in sample response below). I could add some scanning for the name of the event to see if it is in the message... feels a bit hacky though :/
 
 Response (formatted for clarity and cut down to four different messages):
 ```json
@@ -178,6 +178,35 @@ Response (formatted for clarity and cut down to four different messages):
         "attribute1": null,
         "attribute2": null,
         "url": "https://hjarntorget.goteborg.se/courseId/111111/content.do?id=44444444&linkOrigin=wall",
+        "onclick": null,
+        "anonymous": false,
+        "images": [],
+        "videos": [],
+        "unread": false
+    }, {
+        "id": 32089609,
+        "type": "PIM_SENT",
+        "intId": 26966589,
+        "eventId": null,
+        "eventName": null,
+        "created": {
+            "ts": 1630216831211,
+            "timezoneOffsetMinutes": 120
+        },
+        "creator": {
+            "id": "__system$virtual$calendar__",
+            "firstName": "Kalendern",
+            "lastName": "i PING PONG",
+            "email": null,
+            "online": false,
+            "imagePath": "/pp/lookAndFeel/skins/default/icons/monalisa_large.png",
+            "extraInfoInCatalog": ""
+        },
+        "title": "PIM from PING PONG",
+        "body": "Alarm från kalendern!\n\n2021-08-30 08.00\nFrån kalender: 138JÄTS Provschema år 7\nLäxa engelska\n\n\nVarje vecka har vi engelskaläxa, denna är alltid till måndag.\r\n\r\nDessa finns alltid i engelskans google classroom.",
+        "attribute1": "Kalendern i PING PONG",
+        "attribute2": null,
+        "url": "https://hjarntorget.goteborg.se/pimShowInboxMessage.do?id=26966589&linkOrigin=wall",
         "onclick": null,
         "anonymous": false,
         "images": [],
@@ -310,300 +339,12 @@ providing these parameters. (Haven't tested it though)
 
 
 ## Class mates
-There does not seem to be any listing of class mates accessible.
+There does not seem to be any listing of class mates accessible. Each student is associated to different "events" in Hjärntorget. It is possible to get the events a parent is part of loop over them and then fetch the students for each of those and just pick the lists where a particular child belongs.
+
 
 ## Schedule
-There are some API endpoints for fetching a the schedule for a child. However posting to `https://hjarntorget.goteborg.se/api/schema/lessons` with the specified parameters just yielded an empty list. Perhaps this is different for different schools. An alternate approach of scraping the data from the HTML responses seems easier.
+There are some API endpoints for fetching a the schedule for a child. E.g. `https://hjarntorget.goteborg.se/api/schema/lessons`
 
-Posting to `https://hjarntorget.goteborg.se/schema.do?userid=222222_goteborgsstad` redirects to the schedule for the child with the given user id. The url will be something like `https://hjarntorget.goteborg.se/schema.do?handle=1616161616161` where the handle parameter likely indicates the schedule for the child. The response is a hard to parse weekly schedule. The best approach is likely to after the redirect manually follow it and add some parameters so that the request goes to `https://hjarntorget.goteborg.se/schema.do?date=2021-09-03&view=list&handle=1616161616161` where the `date` param is today's date. The response is more easily parsable than the default table based weekly schedule. Below are the relavant parts of the response (a lot of extra cruft is included in the whole response).
-
-```html
-<div class="tabPageContainer clearfix">
-    <div class='cal-list-view'>
-        <p>Här visas händelser från i dag och 12 månader framåt.</p>
-        <h4>Fredag 3 september 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.00-09.55</span></td>
-                <td><span title="MA"> <span class="dynamic-data">MA</span></span>, <span title="B264"><span
-                            class="dynamic-data">B264</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30906005:1&tile=true&handle=1616161616161&date=2021-09-03&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">11.10-12.15</span></td>
-                <td><span title="SV"> <span class="dynamic-data">SV</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [TST]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30906005:1&tile=true&handle=1616161616161&date=2021-09-03&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.15-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30906005:1&tile=true&handle=1616161616161&date=2021-09-03&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-        <h4>Måndag 6 september 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">08.50-09.35</span></td>
-                <td><span title="HKK"> <span class="dynamic-data">HKK</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [JSC]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30006005:1&tile=true&handle=1616161616161&date=2021-09-06&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.55-10.50</span></td>
-                <td><span title="BL"> <span class="dynamic-data">BL</span></span>, <span title="B260"><span
-                            class="dynamic-data">B260</span></span>, [JRU]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30006005:1&tile=true&handle=1616161616161&date=2021-09-06&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">11.00-12.10</span></td>
-                <td><span title="IDH"> <span class="dynamic-data">IDH</span></span>, <span title="IDH Ute"><span
-                            class="dynamic-data">IDH Ute</span></span>, [KTO]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30806007:1&tile=true&handle=1616161616161&date=2021-09-06&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.25-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30106005:1&tile=true&handle=1616161616161&date=2021-09-06&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">13.00-14.00</span></td>
-                <td><span title="EN"> <span class="dynamic-data">EN</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [JEK]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30106005:1&tile=true&handle=1616161616161&date=2021-09-06&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">14.10-15.10</span></td>
-                <td><span title="MA"> <span class="dynamic-data">MA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30106005:1&tile=true&handle=1616161616161&date=2021-09-06&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-        <h4>Tisdag 7 september 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">08.10-08.40</span></td>
-                <td><span title="EV"> <span class="dynamic-data">EV</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30106005:1&tile=true&handle=1616161616161&date=2021-09-07&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">08.40-08.55</span></td>
-                <td><span title="MENT"> <span class="dynamic-data">MENT</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30206005:1&tile=true&handle=1616161616161&date=2021-09-07&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.00-09.50</span></td>
-                <td><span title="EN"> <span class="dynamic-data">EN</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [JEK]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30206005:1&tile=true&handle=1616161616161&date=2021-09-07&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">11.20-12.20</span></td>
-                <td><span title="SV"> <span class="dynamic-data">SV</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [TST]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30206005:1&tile=true&handle=1616161616161&date=2021-09-07&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.20-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30206005:1&tile=true&handle=1616161616161&date=2021-09-07&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">13.00-13.55</span></td>
-                <td><span title="M2FRA"> <span class="dynamic-data">M2FRA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [MFB]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30306005:1&tile=true&handle=1616161616161&date=2021-09-07&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-        <h4>Onsdag 8 september 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">08.55-09.35</span></td>
-                <td><span title="SV"> <span class="dynamic-data">SV</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [TST]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30306005:1&tile=true&handle=1616161616161&date=2021-09-08&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.45-10.40</span></td>
-                <td><span title="M2FRA"> <span class="dynamic-data">M2FRA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [MFB]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30306005:1&tile=true&handle=1616161616161&date=2021-09-08&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">10.50-11.50</span></td>
-                <td><span title="IDH"> <span class="dynamic-data">IDH</span></span>, <span title="GYMa, GYMb"><span
-                            class="dynamic-data">GYMa, GYMb</span></span>, [KTO]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30806007:1&tile=true&handle=1616161616161&date=2021-09-08&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.15-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30406005:1&tile=true&handle=1616161616161&date=2021-09-08&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">13.00-14.05</span></td>
-                <td><span title="MA"> <span class="dynamic-data">MA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30406005:1&tile=true&handle=1616161616161&date=2021-09-08&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-        <h4>Torsdag 9 september 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">08.10-09.25</span></td>
-                <td><span title="SL"> <span class="dynamic-data">SL</span></span>, <span title="B255"><span
-                            class="dynamic-data">B255</span></span>, [BMO, JEJ]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30106007:1&tile=true&handle=1616161616161&date=2021-09-09&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.40-10.20</span></td>
-                <td><span title="M2FRA"> <span class="dynamic-data">M2FRA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [MFB]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30506005:1&tile=true&handle=1616161616161&date=2021-09-09&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">10.40-11.25</span></td>
-                <td><span title="MU"> <span class="dynamic-data">MU</span></span>, <span title="B268"><span
-                            class="dynamic-data">B268</span></span>, [MHE]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30506005:1&tile=true&handle=1616161616161&date=2021-09-09&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">11.30-12.20</span></td>
-                <td><span title="MA"> <span class="dynamic-data">MA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30506005:1&tile=true&handle=1616161616161&date=2021-09-09&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.20-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30506005:1&tile=true&handle=1616161616161&date=2021-09-09&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-        <h4>Fredag 10 september 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.00-09.55</span></td>
-                <td><span title="MA"> <span class="dynamic-data">MA</span></span>, <span title="B264"><span
-                            class="dynamic-data">B264</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30606005:1&tile=true&handle=1616161616161&date=2021-09-10&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">11.10-12.15</span></td>
-                <td><span title="SV"> <span class="dynamic-data">SV</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [TST]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30606005:1&tile=true&handle=1616161616161&date=2021-09-10&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.15-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30706005:1&tile=true&handle=1616161616161&date=2021-09-10&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-        
-<!-- A bunch more days ... -->
-
-        <h4>Onsdag 22 december 2021</h4>
-        <table>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">08.55-09.35</span></td>
-                <td><span title="SV"> <span class="dynamic-data">SV</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [TST]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30806007:1&tile=true&handle=1616161616161&date=2021-12-22&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">09.45-10.40</span></td>
-                <td><span title="M2FRA"> <span class="dynamic-data">M2FRA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [MFB]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30806007:1&tile=true&handle=1616161616161&date=2021-12-22&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">12.15-13.00</span></td>
-                <td><span title="LUNCH"> <span class="dynamic-data">LUNCH</span></span>, <span title="-"><span
-                            class="dynamic-data">-</span></span></td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30906007:1&tile=true&handle=1616161616161&date=2021-12-22&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-            <tr>
-                <td class='time'><span class="date" style="white-space: nowrap;">13.00-14.05</span></td>
-                <td><span title="MA"> <span class="dynamic-data">MA</span></span>, <span title="A402"><span
-                            class="dynamic-data">A402</span></span>, [KAN]</td>
-                <td class='link'><a href='#'
-                        onclick="PP.util.Dialog.open({url: '/schemaEventView.do?eventId=30906007:1&tile=true&handle=1616161616161&date=2021-12-22&view=list', dimensions : {width: '600px', height: null} }); return false;">Visa</a>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
-```
 
 ## Information messages 
 There are some non-PIM messages that are also shown on Hjärntorget. 
