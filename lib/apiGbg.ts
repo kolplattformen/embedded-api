@@ -19,7 +19,7 @@ import {
 } from "./types"
 import { LoginStatusChecker } from './loginStatus'
 import { URLSearchParams } from './URLSearchParams'
-import { IApi } from './iapi'
+import { IApi } from './IApi'
 import { toMarkdown } from './parseHtml'
 import { HjarntorgetChecker } from './hjarntorgetChecker'
 import { extractInitBankIdParams, extractMvghostRequestBody } from './utils/extractorsGbg'
