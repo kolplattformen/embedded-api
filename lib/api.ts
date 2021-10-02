@@ -9,6 +9,7 @@ import {
   AuthTicket,
   CalendarItem,
   Classmate,
+  Teacher,
   CookieManager,
   Fetch,
   MenuItem,
@@ -26,6 +27,7 @@ import * as routes from './routes'
 import * as parse from './parse/index'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
+import { SchoolContact } from '.'
 
 const fakeResponse = <T>(data: T): Promise<T> =>
   new Promise((res) => setTimeout(() => res(data), 200 + Math.random() * 800))
@@ -251,6 +253,27 @@ export class Api extends EventEmitter {
     const response = await this.fetch('classmates', url, session)
     const data = await response.json()
     return parse.classmates(data)
+  }
+
+  public async getTeachers(child: EtjanstChild): Promise<Teacher[]> {
+    if (this.isFake) return fakeResponse(fake.teachers(child))
+
+    const schoolForm = 'GR'
+    const url = routes.teachers(child.sdsId, schoolForm)
+    const session = this.getRequestInit()
+    const response = await this.fetch('teaches', url, session)
+    const data = await response.json()
+    return parse.teachers(data)
+  }
+
+  public async getSchoolContacts(child: EtjanstChild): Promise<SchoolContact[]> {
+    if(this.isFake) return fakeResponse(fake.schoolContacts(child))
+
+    const url = routes.schoolContacts(child.sdsId, child.schoolId || '')
+    const session = this.getRequestInit()
+    const response = await this.fetch('schoolContacts', url, session)
+    const data = await response.json()
+    return parse.schoolContacts(data)
   }
 
   public async getSchedule(
