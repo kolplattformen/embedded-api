@@ -9,7 +9,6 @@ import {
   AuthTicket,
   CalendarItem,
   Classmate,
-  Teacher,
   CookieManager,
   Fetch,
   MenuItem,
@@ -18,7 +17,9 @@ import {
   RequestInit,
   ScheduleItem,
   User,
+  SchoolContact,
   Skola24Child,
+  Teacher,
   EtjanstChild,
   SSOSystem,
   TimetableEntry
@@ -27,7 +28,7 @@ import * as routes from './routes'
 import * as parse from './parse/index'
 import wrap, { Fetcher, FetcherOptions } from './fetcher'
 import * as fake from './fakeData'
-import { SchoolContact } from '.'
+
 
 const fakeResponse = <T>(data: T): Promise<T> =>
   new Promise((res) => setTimeout(() => res(data), 200 + Math.random() * 800))

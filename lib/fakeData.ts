@@ -1,16 +1,16 @@
 /* eslint-disable max-len */
-import { SchoolContact } from '.'
 import {
   CalendarItem,
   Child,
   Classmate,
-  Teacher,
   EtjanstChild,
   MenuItem,
   NewsItem,
   Notification,
   ScheduleItem,
+  SchoolContact,
   Skola24Child,
+  Teacher,
   TimetableEntry,
   User,
 } from './types'
