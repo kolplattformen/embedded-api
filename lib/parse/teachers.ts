@@ -1,6 +1,10 @@
 import { etjanst } from './etjanst'
 import { Teacher } from '../types'
 
+const abbreviate = (firstname?: string, lastname?: string): string => {
+  return `${firstname?.substr(0,1)}${lastname?.substr(0,2)}`.toUpperCase()
+}
+
 export const teacher = ({
   id,
   sisId,
@@ -21,10 +25,6 @@ export const teacher = ({
   status,
   timeTableAbbreviation: abbreviate(firstname, lastname)
 })
-
-const abbreviate = (firstname?: string, lastname?: string): string => {
-  return `${firstname?.substr(0,1)}${lastname?.substr(0,2)}`.toUpperCase()
-}
 
 export const teachers = (data: any): Teacher[] =>
   etjanst(data).map(teacher)
