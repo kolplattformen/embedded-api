@@ -11,7 +11,7 @@ export const teacher = ({
   firstname,
   lastname,
   emailaddress,
-  telWork,
+  telwork,
   active,
   status,
 }: any): Teacher => ({
@@ -20,7 +20,7 @@ export const teacher = ({
   firstname,
   lastname,
   email: emailaddress,
-  phoneWork: telWork,
+  phoneWork: telwork,
   active,
   status,
   timeTableAbbreviation: abbreviate(firstname, lastname)
