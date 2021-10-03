@@ -259,12 +259,22 @@ export class Api extends EventEmitter {
   public async getTeachers(child: EtjanstChild): Promise<Teacher[]> {
     if (this.isFake) return fakeResponse(fake.teachers(child))
 
-    const schoolForm = 'GR'
-    const url = routes.teachers(child.sdsId, schoolForm)
     const session = this.getRequestInit()
-    const response = await this.fetch('teaches', url, session)
-    const data = await response.json()
-    return parse.teachers(data)
+
+    const schoolForms = child.status?.split(';') || ''
+    let teachers: Teacher[] = []
+
+    for(let i = 0; i< schoolForms.length; i=i+1){
+      const url = routes.teachers(child.sdsId, schoolForms[i])
+      const response = await this.fetch(`teachers_${schoolForms[i]}`, url, session)
+      const data = await response.json()
+      teachers = [
+        ...teachers,
+        ...parse.teachers(data)
+      ]
+    }
+
+    return teachers
   }
 
   public async getSchoolContacts(child: EtjanstChild): Promise<SchoolContact[]> {
