@@ -264,9 +264,11 @@ export class Api extends EventEmitter {
     const schoolForms = child.status?.split(';') || ''
     let teachers: Teacher[] = []
 
-    for(let i = 0; i< schoolForms.length; i=i+1){
+    for(let i = 0; i< schoolForms.length; i+=1){
       const url = routes.teachers(child.sdsId, schoolForms[i])
+      // eslint-disable-next-line no-await-in-loop
       const response = await this.fetch(`teachers_${schoolForms[i]}`, url, session)
+      // eslint-disable-next-line no-await-in-loop
       const data = await response.json()
       teachers = [
         ...teachers,

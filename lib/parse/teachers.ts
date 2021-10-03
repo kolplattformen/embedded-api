@@ -1,9 +1,8 @@
 import { etjanst } from './etjanst'
 import { Teacher } from '../types'
 
-const abbreviate = (firstname?: string, lastname?: string): string => {
-  return `${firstname?.substr(0,1)}${lastname?.substr(0,2)}`.toUpperCase()
-}
+const abbreviate = (firstname?: string, lastname?: string): string => 
+  `${firstname?.substr(0,1)}${lastname?.substr(0,2)}`.toUpperCase()
 
 export const teacher = ({
   id,
