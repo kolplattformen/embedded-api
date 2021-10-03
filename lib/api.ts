@@ -261,7 +261,7 @@ export class Api extends EventEmitter {
 
     const session = this.getRequestInit()
 
-    const schoolForms = child.status?.split(';') || ''
+    const schoolForms = (child.status || '').split(';')
     let teachers: Teacher[] = []
 
     for(let i = 0; i< schoolForms.length; i+=1){
